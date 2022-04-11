@@ -175,25 +175,25 @@ class Szoveg extends Drawable
     this.EndDraw();
   }
 }
-
-class Triangle extends Drawable
+class DrawableObject extends Drawable
 {
-    constructor(Point,FillColor,Width,Height,StrokeColor,StrokeWidth,Rotation=0)
+    constructor(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation=0)
     {
         super(Point,Rotation,FillColor.ToString(),StrokeColor.ToString());
-        this.Width = Width;
-        this.Height = Height;
+        this.a = a;
         this.StrokeWidth = StrokeWidth;
     }
 
-    getWidthPercentage(percentage)
+    getSidePercentage(percentage)
     {
-        return this.Width*percentage/100;
+        return this.a*percentage/100;
     }
-
-    getHeightPercentage(percentage)
+}
+class Triangle extends DrawableObject
+{
+    constructor(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation=0)
     {
-        return this.Height*percentage/100;
+        super(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation);
     }
 
     draw()
@@ -203,10 +203,10 @@ class Triangle extends Drawable
         Context.fillStyle = this.FillStyle;
         Context.strokeStyle = this.StrokeStyle;
         Context.lineWidth = this.StrokeWidth;
-        Context.moveTo(this.getWidthPercentage(50),0);
-        Context.lineTo(this.Width,this.Height);
-        Context.lineTo(0,this.Height);
-        Context.lineTo(this.getWidthPercentage(50),0);
+        Context.moveTo(this.getSidePercentage(50),0);
+        Context.lineTo(this.a,this.a);
+        Context.lineTo(0,this.a);
+        Context.lineTo(this.getSidePercentage(50),0);
         Context.fill();
         Context.stroke();
         Context.closePath();
@@ -214,15 +214,13 @@ class Triangle extends Drawable
     }
 }
 
-class Circle extends Drawable
+class Circle extends DrawableObject
 {
-    constructor(Point,FillColor,Width,Height,StrokeColor,StrokeWidth,Rotation=0)
+    constructor(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation=0)
     {
-        super(Point,Rotation,FillColor.ToString(),StrokeColor.ToString());
-        this.Width = Width;
-        this.Height = Height;
-        this.StrokeWidth = StrokeWidth;
+        super(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation);
     }
+
     draw()
     {
         this.BeginDraw();
@@ -230,7 +228,41 @@ class Circle extends Drawable
         Context.fillStyle = this.FillStyle;
         Context.strokeStyle = this.StrokeStyle;
         Context.lineWidth = this.StrokeWidth;
-        Context.arc();
+        Context.arc(this.getSidePercentage(50),this.getSidePercentage(50),this.getSidePercentage(50),0,Math.PI*2);
+        Context.fill();
+        Context.stroke();
+        Context.closePath();
+        this.EndDraw();
+    }
+}
+
+class XForm extends DrawableObject
+{
+    constructor(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation=0)
+    {
+        super(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation);
+    }
+
+    draw()
+    {
+        this.BeginDraw();
+        Context.beginPath();
+        Context.fillStyle = this.FillStyle;
+        Context.strokeStyle = this.StrokeStyle;
+        Context.lineWidth = this.StrokeWidth;
+        Context.moveTo(0,this.getSidePercentage(20));
+        Context.lineTo(this.getSidePercentage(20),0);
+        Context.lineTo(this.getSidePercentage(50),this.getSidePercentage(35));
+        Context.lineTo(this.a-this.getSidePercentage(20),0);
+        Context.lineTo(this.a,this.getSidePercentage(20));
+        Context.lineTo(this.a-this.getSidePercentage(35),this.getSidePercentage(50));
+        Context.lineTo(this.a,this.a-this.getSidePercentage(20));
+        Context.lineTo(this.a-this.getSidePercentage(20),this.a);
+        Context.lineTo(this.getSidePercentage(50),this.a-this.getSidePercentage(35));
+        Context.lineTo(this.getSidePercentage(20),this.a);
+        Context.lineTo(0,this.a-this.getSidePercentage(20));
+        Context.lineTo(this.getSidePercentage(35),this.getSidePercentage(50));
+        Context.lineTo(0,this.getSidePercentage(20));
         Context.fill();
         Context.stroke();
         Context.closePath();
@@ -249,9 +281,10 @@ class PlayerPanel extends Panel
     this.PassiveColor = PassiveColor;
     this.IsActive = IsActive;
     let black = new Color(0,0,0);
-    this.Square = new Square(new Point(this.Rectangle.getWidthPercentagePoint(12),this.Rectangle.getHeightPercentagePoint(15)),this.GetCurrentColor(),black,this.Rectangle.getHeightPercentage(65),this.Rectangle.getHeightPercentage(5));
-    this.Triangle = new Triangle(new Point(this.Rectangle.getWidthPercentagePoint(37),this.Rectangle.getHeightPercentagePoint(15)),this.GetCurrentColor(),this.Rectangle.getHeightPercentage(65),this.Rectangle.getHeightPercentage(65),black,this.Rectangle.getHeightPercentage(5));
-   
+    this.Square = new Square(new Point(this.Rectangle.getWidthPercentagePoint(12),this.Rectangle.getHeightPercentagePoint(25)),this.GetCurrentColor(),black,this.Rectangle.getHeightPercentage(50),this.Rectangle.getHeightPercentage(5));
+    this.Triangle = new Triangle(new Point(this.Rectangle.getWidthPercentagePoint(35),this.Rectangle.getHeightPercentagePoint(25)),this.GetCurrentColor(),this.Rectangle.getHeightPercentage(50),black,this.Rectangle.getHeightPercentage(5));
+    this.Circle = new Circle(new Point(this.Rectangle.getWidthPercentagePoint(58),this.Rectangle.getHeightPercentagePoint(25)),this.GetCurrentColor(),this.Rectangle.getHeightPercentage(50),black,this.Rectangle.getHeightPercentage(5));
+    this.XForm = new XForm(new Point(this.Rectangle.getWidthPercentagePoint(81),this.Rectangle.getHeightPercentagePoint(25)),this.GetCurrentColor(),this.Rectangle.getHeightPercentage(50),black,this.Rectangle.getHeightPercentage(5)); 
    }
   GetCurrentColor()
   {
@@ -264,6 +297,8 @@ class PlayerPanel extends Panel
     this.Player.draw();
     this.Square.draw();
     this.Triangle.draw();
+    this.Circle.draw();
+    this.XForm.draw();
   }
 }
 
