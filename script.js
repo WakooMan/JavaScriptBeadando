@@ -1,3 +1,27 @@
+class Drawable
+{
+  constructor(Point,Rotation,FillStyle,StrokeStyle)
+  {
+    this.Point = Point;
+    this.Rotation = Rotation;
+    this.FillStyle = FillStyle;
+    this.StrokeStyle = StrokeStyle;
+  }
+  BeginDraw()
+  {
+    Context.translate(this.Point.X,this.Point.Y);
+    Context.rotate(this.Rotation);
+  }
+
+  EndDraw()
+  {
+    Context.rotate(-this.Rotation);
+    Context.translate(-this.Point.X,-this.Point.Y);
+  }
+}
+
+
+
 class Color
 {
   constructor(R,G,B)
@@ -5,6 +29,10 @@ class Color
     this.R=R;
     this.G = G;
     this.B=B;
+  }
+  ToString()
+  {
+    return `rgb(${this.R},${this.G},${this.B})`;
   }
 }
 
@@ -17,22 +45,25 @@ class Point
   }
 }
 
-class Rectangle
+class Rectangle extends Drawable
 {
-  constructor(Point,Col,Width,Height)
+  constructor(Point,FillColor,StrokeColor,Width,Height,Rotation=0)
   {
-    this.Point = Point;
-    this.Col = Col;
+    super(Point,Rotation,FillColor.ToString(),StrokeColor.ToString());
     this.Width = Width;
     this.Height = Height;
   }
 
   draw()
   {
+    this.BeginDraw();
     Context.beginPath();
-    Context.fillStyle = `rgb(${this.Col.R},${this.Col.G},${this.Col.B})`;
-    Context.fillRect(this.Point.X,this.Point.Y,this.Width,this.Height);
+    Context.fillStyle = this.FillStyle;
+    Context.strokeStyle = this.StrokeStyle;
+    Context.rect(0,0,this.Width,this.Height);
+    Context.fill();
     Context.closePath();
+    this.EndDraw();
   }
   getWidthPercentage(percentage)
   {
@@ -41,17 +72,33 @@ class Rectangle
 
   getHeightPercentage(percentage)
   {
-    return this.Width*percentage/100;
+    return this.Height*percentage/100;
   }
 
   getWidthPercentagePoint(percentage)
   {
-    return this.Point.X+(this.Width*percentage/100);
+    return this.Point.X+this.getWidthPercentage(percentage);
   }
 
   getHeightPercentagePoint(percentage)
   {
-    return this.Point.Y+(this.Width*percentage/100);
+    return this.Point.Y+this.getHeightPercentage(percentage);
+  }
+}
+
+class Square extends Rectangle
+{
+  constructor(Point,FillColor,StrokeColor,a,Rotation=0)
+  {
+    super(Point,Rotation,FillColor.ToString(),StrokeColor.ToString(),a,a,Rotation);
+  }
+}
+
+class BorderlessRectangle extends Rectangle
+{
+  constructor(Point,FillColor,Width,Height,Rotation=0)
+  {
+    super(Point,FillColor,FillColor,Width,Height,Rotation);
   }
 }
 
@@ -83,55 +130,66 @@ class Panel
   }
 }
 
+class Szoveg extends Drawable
+{
+  constructor(Str,Point,fontStr,fillStyle,Rotation = 0)
+  {
+    super(Point,Rotation);
+    this.Str = Str;
+    this.fontStr = fontStr;
+    this.fillStyle = fillStyle;
+  }
+
+  draw()
+  {
+    this.BeginDraw();
+    Context.beginPath();
+    Context.font = this.fontStr;
+    Context.fillStyle = this.fillStyle;
+    Context.fillText(this.Str,0,0);
+    Context.closePath();
+    this.EndDraw();
+  }
+}
+
 class PlayerPanel extends Panel
 {
   constructor(Rectangle,PlayerStr)
   {
     super(Rectangle);
-    this.PlayerStr = PlayerStr;
+    this.Player = new Szoveg(PlayerStr,new Point(this.Rectangle.Point.X + this.Rectangle.getWidthPercentage(5),this.Rectangle.Point.Y + this.Rectangle.getHeightPercentage(93)),`bold ${this.Rectangle.getHeightPercentage(20)}px serif`,'black',-Math.PI/2);
   }
   draw()
   {
     super.draw();
-    Context.font = `bold 50px serif`;
-    Context.rotate(Math.PI/2);
-    Context.fillStyle = 'black';
-    Context.fillText(this.PlayerStr,this.Rectangle.Point.X,this.Rectangle.Point.Y);
-    Context.rotate(-Math.PI/2);
+    this.Player.draw();
   }
 }
 
 class OpponentsPanel extends Panel
 {
-  constructor(Rectangle,Player1Image,Player2Image)
+  constructor(Rectangle,Player1Image,Player2Image,P1Name,P2Name)
   {
     super(Rectangle);
     this.Player1Image = Player1Image;
     this.Player2Image = Player2Image;
+    this.dx1 = this.Rectangle.getWidthPercentagePoint(10);
+    this.dx2 = this.Rectangle.getWidthPercentagePoint(65);
+    this.dy = this.Rectangle.getHeightPercentagePoint(20);
+    this.dw = this.Rectangle.getWidthPercentage(25);
+    this.dh = this.Rectangle.getHeightPercentage(50);
+    this.VS = new Szoveg('VS',new Point(this.dx1+(this.dx2-this.dx1)/2,this.Rectangle.getHeightPercentagePoint(60)),`bold ${this.Rectangle.getWidthPercentage(20)}px serif`,'black');
+    this.P1 = new Szoveg(P1Name,new Point(this.dx1,this.dy+this.dh+this.Rectangle.getHeightPercentagePoint(10)),`bold ${this.Rectangle.getWidthPercentage(6)}px serif`,'black');
+    this.P2 = new Szoveg(P2Name,new Point(this.dx2,this.dy+this.dh+this.Rectangle.getHeightPercentagePoint(10)),`bold ${this.Rectangle.getWidthPercentage(6)}px serif`,'black');
   }
   draw()
   {
     super.draw();
-    let Pos = this.Rectangle.Point;
-    let dx1 = Pos.X+this.Rectangle.Width/10;
-    let dy1 =Pos.Y+this.Rectangle.Height/6;
-    let dw = this.Rectangle.Width/4;
-    let dh = this.Rectangle.Height/2;
-    let dx2 = Pos.X+this.Rectangle.Width-dw-this.Rectangle.Width/10;
-    let dy2 = Pos.Y+this.Rectangle.Height/6;
-    let VSPos = new Point(dx1+(dx2-dx1)/2,dy1+dh/2+(this.Rectangle.Width/12));
-    let Player1StrPos = new Point(dx1,dy1+dh+this.Rectangle.Height/10);
-    let Player2StrPos = new Point(dx2,dy2+dh+this.Rectangle.Height/10);
-    let Player1Str = '1. Játékos';
-    let Player2Str = '2. Játékos';
-    Context.drawImage(this.Player1Image,dx1,dy1,dw,dh);
-    Context.drawImage(this.Player2Image,dx2,dy2,dw,dh);
-    Context.font = `bold ${this.Rectangle.Width/5}px serif`;
-    Context.fillStyle = 'black';
-    Context.fillText('VS',VSPos.X,VSPos.Y);
-    Context.font = `bold ${this.Rectangle.Width/15}px serif`;
-    Context.fillText(Player1Str,Player1StrPos.X,Player1StrPos.Y);
-    Context.fillText(Player2Str,Player2StrPos.X,Player2StrPos.Y);
+    Context.drawImage(this.Player1Image,this.dx1,this.dy,this.dw,this.dh);
+    Context.drawImage(this.Player2Image,this.dx2,this.dy,this.dw,this.dh);
+    this.VS.draw();
+    this.P1.draw();
+    this.P2.draw();
   }
 }
 
@@ -187,35 +245,35 @@ window.addEventListener('resize', resizeCanvas, false);
     }
     let table = new Table(
       [
-        new Rectangle(new Point(CellPos(0,0),CellPos(0,0)),GreenCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(1,1),CellPos(0,0)),GreenCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(0,0),CellPos(1,1)),GreenCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(1,1),CellPos(1,1)),GreenCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(2,2),CellPos(0,0)),YellowCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(3,3),CellPos(0,0)),YellowCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(2,2),CellPos(1,1)),YellowCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(3,3),CellPos(1,1)),YellowCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(0,0),CellPos(2,2)),YellowCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(1,1),CellPos(2,2)),YellowCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(0,0),CellPos(3,3)),YellowCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(1,1),CellPos(3,3)),YellowCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(2,2),CellPos(2,2)),GreenCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(3,3),CellPos(2,2)),GreenCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(2,2),CellPos(3,3)),GreenCellColor,CellHeightWidth,CellHeightWidth),
-        new Rectangle(new Point(CellPos(3,3),CellPos(3,3)),GreenCellColor,CellHeightWidth,CellHeightWidth)
+        new BorderlessRectangle(new Point(CellPos(0,0),CellPos(0,0)),GreenCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(1,1),CellPos(0,0)),GreenCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(0,0),CellPos(1,1)),GreenCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(1,1),CellPos(1,1)),GreenCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(2,2),CellPos(0,0)),YellowCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(3,3),CellPos(0,0)),YellowCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(2,2),CellPos(1,1)),YellowCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(3,3),CellPos(1,1)),YellowCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(0,0),CellPos(2,2)),YellowCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(1,1),CellPos(2,2)),YellowCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(0,0),CellPos(3,3)),YellowCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(1,1),CellPos(3,3)),YellowCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(2,2),CellPos(2,2)),GreenCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(3,3),CellPos(2,2)),GreenCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(2,2),CellPos(3,3)),GreenCellColor,CellHeightWidth,CellHeightWidth),
+        new BorderlessRectangle(new Point(CellPos(3,3),CellPos(3,3)),GreenCellColor,CellHeightWidth,CellHeightWidth)
       ]);
 
     let PanelWidths = Width/4;
     let OpponentsPanelHeight = CellPos(4,3)/3;
     let PlayerPanelHeight = CellPos(4,3)/5;
     let X = Width/2+Width/16;
-    let player1Panel = new PlayerPanel(new Rectangle(new Point(X,CellPos(4,3)/2),Jatekos1PasszivColor,PanelWidths,PlayerPanelHeight),'1. Játékos');
-    let player2Panel = new PlayerPanel(new Rectangle(new Point(X,CellPos(4,3)-PlayerPanelHeight),Jatekos2PasszivColor,PanelWidths,PlayerPanelHeight),'2. Játékos');
+    let player1Panel = new PlayerPanel(new BorderlessRectangle(new Point(X,CellPos(4,3)/2),Jatekos1PasszivColor,PanelWidths,PlayerPanelHeight),'1. Játékos');
+    let player2Panel = new PlayerPanel(new BorderlessRectangle(new Point(X,CellPos(4,3)-PlayerPanelHeight),Jatekos2PasszivColor,PanelWidths,PlayerPanelHeight),'2. Játékos');
     let player1Image = document.createElement('img');
     player1Image.src = 'Images/piros.png';
     let player2Image = document.createElement('img');
     player2Image.src = 'Images/halvany_zold.png';
-    let opponentsPanel = new OpponentsPanel(new Rectangle(new Point(X,0),YellowCellColor,PanelWidths,OpponentsPanelHeight),player1Image,player2Image);
+    let opponentsPanel = new OpponentsPanel(new BorderlessRectangle(new Point(X,0),YellowCellColor,PanelWidths,OpponentsPanelHeight),player1Image,player2Image,'1. Játékos','2. Játékos');
     GUI = new SurfacePanel(table,opponentsPanel,player1Panel,player2Panel);
     render(); 
   }
