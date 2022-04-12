@@ -101,9 +101,46 @@ class Table
         {
           if(value.Object==null && value.InThis(Object.Point) && value.InThis(new Point(Object.Point.X,Object.Point.Y + Object.a)) && value.InThis(new Point(Object.Point.X + Object.a,Object.Point.Y)) && value.InThis(new Point(Object.Point.X + Object.a,Object.Point.Y + Object.a)))
           {
-            value.Push(Object);
+            let maradek= idx%4;
+            let hanyados = Math.floor(idx/4);
+            let negyes = this.NegyestSzamol(maradek,hanyados);
+            
+
+            if(this.Cells.filter((Value,index,array)=>
+            {
+              let maradek2 = index%4;
+              let hanyados2 = Math.floor(index/4);
+              return ((index % 4 == maradek) || (index >= hanyados*4 && index < (hanyados*4) + 4) || (this.NegyestSzamol(maradek2,hanyados2)==negyes)) && (Value.Object!=null &&Value.Object.GetType() == value.Object.GetType());
+            }).length==0)
+            {
+              value.Push(Object);
+            }
           }
         });
+  }
+
+  NegyestSzamol(maradek,hanyados)
+  {
+    if(hanyados + maradek < 2 || (hanyados == 1 && maradek == 1) )
+    {
+      return 1;
+    }
+    else if((hanyados == 0 && maradek == 2) ||(hanyados == 0 && maradek == 3) || (hanyados == 1 && maradek == 2) || (hanyados == 1 && maradek == 3))
+    {
+      return 2;
+    }
+    else if((hanyados == 2 && maradek == 0) ||(hanyados == 3 && maradek == 0) || (hanyados == 2 && maradek == 1) || (hanyados == 3 && maradek == 1))
+    {
+      return 3;
+    }
+    else if((hanyados + maradek > 4 && hanyados + maradek <=6) || (hanyados == 2 && maradek == 2))
+    {
+      return 4;
+    }
+    else
+    {
+      return -1;
+    }
   }
 
 }
@@ -259,6 +296,11 @@ class Square extends DrawableObject
     return new Square(new Point(this.Point.X,this.Point.Y),new Color(this.FillColor.R,this.FillColor.G,this.FillColor.B),new Color(this.StrokeColor.R,this.StrokeColor.G,this.StrokeColor.B),this.a,this.StrokeWidth,this.Rotation);
   }
 
+  GetType()
+  {
+    return 'Square';
+  }
+
   draw(Context)
   {
     this.BeginDraw(Context);
@@ -285,6 +327,10 @@ class Triangle extends DrawableObject
       return new Triangle(new Point(this.Point.X,this.Point.Y),new Color(this.FillColor.R,this.FillColor.G,this.FillColor.B),this.a,new Color(this.StrokeColor.R,this.StrokeColor.G,this.StrokeColor.B),this.StrokeWidth,this.Rotation);
     }
 
+    GetType()
+    {
+      return 'Triangle';
+    }
     draw(Context)
     {
         this.BeginDraw(Context);
@@ -310,6 +356,10 @@ class Circle extends DrawableObject
         super(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation);
     }
 
+    GetType()
+    {
+      return 'Circle';
+    }
     Copy()
     {
       return new Circle(new Point(this.Point.X,this.Point.Y),new Color(this.FillColor.R,this.FillColor.G,this.FillColor.B),this.a,new Color(this.StrokeColor.R,this.StrokeColor.G,this.StrokeColor.B),this.StrokeWidth,this.Rotation);
@@ -337,6 +387,10 @@ class XForm extends DrawableObject
         super(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation);
     }
 
+    GetType()
+    {
+      return 'XForm';
+    }
     Copy()
     {
       return new XForm(new Point(this.Point.X,this.Point.Y),new Color(this.FillColor.R,this.FillColor.G,this.FillColor.B),this.a,new Color(this.StrokeColor.R,this.StrokeColor.G,this.StrokeColor.B),this.StrokeWidth,this.Rotation);
