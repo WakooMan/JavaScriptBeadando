@@ -24,12 +24,12 @@ class Colors
 
   static GreenCellColor()
   {
-    new Color(104,175,104);
+    return new Color(104,175,104);
   }
 
   static YellowCellColor()
   {
-    new Color(231, 231, 103);
+    return new Color(231, 231, 103);
   }
 }
 
@@ -42,13 +42,13 @@ class Drawable
     this.FillStyle = FillStyle;
     this.StrokeStyle = StrokeStyle;
   }
-  BeginDraw()
+  BeginDraw(Context)
   {
     Context.translate(this.Point.X,this.Point.Y);
     Context.rotate(this.Rotation);
   }
 
-  EndDraw()
+  EndDraw(Context)
   {
     Context.rotate(-this.Rotation);
     Context.translate(-this.Point.X,-this.Point.Y);
@@ -86,14 +86,26 @@ class Table
   {
     this.Cells = Cells;
   }
-  draw()
+  draw(Context)
   {
     this.Cells.forEach(
       (Value,idx,array)=> 
       {
-        Value.draw();
+        Value.draw(Context);
       });
   }
+  PutIfValid(Object)
+  {
+      this.Cells.forEach(
+        (value,idx,array)=>
+        {
+          if(value.Object==null && value.InThis(Object.Point) && value.InThis(new Point(Object.Point.X,Object.Point.Y + Object.a)) && value.InThis(new Point(Object.Point.X + Object.a,Object.Point.Y)) && value.InThis(new Point(Object.Point.X + Object.a,Object.Point.Y + Object.a)))
+          {
+            value.Push(Object);
+          }
+        });
+  }
+
 }
 
 class Panel
@@ -102,31 +114,44 @@ class Panel
   {
     this.Rectangle = Rectangle;
   }
-  draw()
+  draw(Context)
   {
-    this.Rectangle.draw();
-  }
-}
-
-class SurfacePanel
-{
-  constructor(Table,Panel,Player1Panel,Player2Panel)
-  {
-    this.Table = Table;
-    this.Panel = Panel;
-    this. Player1Panel = Player1Panel;
-    this. Player2Panel = Player2Panel;
-  }
-  draw()
-  {
-    this.Table.draw();
-    this.Panel.draw();
-    this.Player1Panel.draw();
-    this.Player2Panel.draw();
+    this.Rectangle.draw(Context);
   }
 }
 
 //Child Classes
+
+class Cell extends Panel
+{
+  constructor(point,color,a,Object,PlayerID)
+  {
+    super(new BorderlessRectangle(point,color,a,a));
+    this.Object = Object;
+    this.PlayerID = PlayerID;
+  }
+
+  draw(Context)
+  {
+    super.draw(Context);
+    if(this.Object!=null)
+    {
+      this.Object.draw(Context);
+    }
+  }
+
+  InThis(Point)
+  {
+    return (Point.X >= this.Rectangle.Point.X) && (Point.X <= this.Rectangle.Point.X + this.Rectangle.Width) && (Point.Y >= this.Rectangle.Point.Y) && (Point.Y <= this.Rectangle.Point.Y + this.Rectangle.Height);
+  }
+
+  Push(Object)
+  {
+    this.Object = Object;
+    this.Object.Point = new Point(this.Rectangle.Point.X + this.Rectangle.getWidthPercentage(50) - Object.a/2,this.Rectangle.Point.Y + this.Rectangle.getHeightPercentage(50) - Object.a/2);
+  }
+
+}
 
 class Rectangle extends Drawable
 {
@@ -138,9 +163,9 @@ class Rectangle extends Drawable
     this.StrokeWidth = StrokeWidth;
   }
 
-  draw()
+  draw(Context)
   {
-    this.BeginDraw();
+    this.BeginDraw(Context);
     Context.beginPath();
     Context.fillStyle = this.FillStyle;
     Context.strokeStyle = this.StrokeStyle;
@@ -149,7 +174,7 @@ class Rectangle extends Drawable
     Context.fill();
     Context.stroke();
     Context.closePath();
-    this.EndDraw();
+    this.EndDraw(Context);
   }
   getWidthPercentage(percentage)
   {
@@ -172,14 +197,6 @@ class Rectangle extends Drawable
   }
 }
 
-class Square extends Rectangle
-{
-  constructor(Point,FillColor,StrokeColor,a,StrokeWidth,Rotation=0)
-  {
-    super(Point,FillColor,StrokeColor,a,a,StrokeWidth,Rotation);
-  }
-}
-
 class BorderlessRectangle extends Rectangle
 {
   constructor(Point,FillColor,Width,Height,Rotation=0)
@@ -197,15 +214,15 @@ class Szoveg extends Drawable
     this.FontStr = FontStr;
   }
 
-  draw()
+  draw(Context)
   {
-    this.BeginDraw();
+    this.BeginDraw(Context);
     Context.beginPath();
     Context.font = this.FontStr;
     Context.fillStyle = this.FillStyle;
     Context.fillText(this.Str,0,0);
     Context.closePath();
-    this.EndDraw();
+    this.EndDraw(Context);
   }
 }
 class DrawableObject extends Drawable
@@ -215,12 +232,46 @@ class DrawableObject extends Drawable
         super(Point,Rotation,FillColor.ToString(),StrokeColor.ToString());
         this.a = a;
         this.StrokeWidth = StrokeWidth;
+        this.FillColor = FillColor;
+        this.StrokeColor = StrokeColor;
     }
 
     getSidePercentage(percentage)
     {
         return this.a*percentage/100;
     }
+
+    InThis(point)
+    {
+      return point.X>= this.Point.X && point.X <= this.Point.X + this.a && point.Y>= this.Point.Y && point.Y <= this.Point.Y + this.a;
+    }
+}
+
+class Square extends DrawableObject
+{
+  constructor(Point,FillColor,StrokeColor,a,StrokeWidth,Rotation=0)
+  {
+    super(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation);
+  }
+
+  Copy()
+  {
+    return new Square(new Point(this.Point.X,this.Point.Y),new Color(this.FillColor.R,this.FillColor.G,this.FillColor.B),new Color(this.StrokeColor.R,this.StrokeColor.G,this.StrokeColor.B),this.a,this.StrokeWidth,this.Rotation);
+  }
+
+  draw(Context)
+  {
+    this.BeginDraw(Context);
+    Context.beginPath();
+    Context.fillStyle = this.FillStyle;
+    Context.strokeStyle = this.StrokeStyle;
+    Context.lineWidth = this.StrokeWidth;
+    Context.rect(0,0,this.a,this.a);
+    Context.fill();
+    Context.stroke();
+    Context.closePath();
+    this.EndDraw(Context);
+  }
 }
 class Triangle extends DrawableObject
 {
@@ -229,9 +280,14 @@ class Triangle extends DrawableObject
         super(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation);
     }
 
-    draw()
+    Copy()
     {
-        this.BeginDraw();
+      return new Triangle(new Point(this.Point.X,this.Point.Y),new Color(this.FillColor.R,this.FillColor.G,this.FillColor.B),this.a,new Color(this.StrokeColor.R,this.StrokeColor.G,this.StrokeColor.B),this.StrokeWidth,this.Rotation);
+    }
+
+    draw(Context)
+    {
+        this.BeginDraw(Context);
         Context.beginPath();
         Context.fillStyle = this.FillStyle;
         Context.strokeStyle = this.StrokeStyle;
@@ -243,7 +299,7 @@ class Triangle extends DrawableObject
         Context.fill();
         Context.stroke();
         Context.closePath();
-        this.EndDraw();
+        this.EndDraw(Context);
     }
 }
 
@@ -254,9 +310,14 @@ class Circle extends DrawableObject
         super(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation);
     }
 
-    draw()
+    Copy()
     {
-        this.BeginDraw();
+      return new Circle(new Point(this.Point.X,this.Point.Y),new Color(this.FillColor.R,this.FillColor.G,this.FillColor.B),this.a,new Color(this.StrokeColor.R,this.StrokeColor.G,this.StrokeColor.B),this.StrokeWidth,this.Rotation);
+    }
+
+    draw(Context)
+    {
+        this.BeginDraw(Context);
         Context.beginPath();
         Context.fillStyle = this.FillStyle;
         Context.strokeStyle = this.StrokeStyle;
@@ -265,7 +326,7 @@ class Circle extends DrawableObject
         Context.fill();
         Context.stroke();
         Context.closePath();
-        this.EndDraw();
+        this.EndDraw(Context);
     }
 }
 
@@ -276,9 +337,14 @@ class XForm extends DrawableObject
         super(Point,FillColor,a,StrokeColor,StrokeWidth,Rotation);
     }
 
-    draw()
+    Copy()
     {
-        this.BeginDraw();
+      return new XForm(new Point(this.Point.X,this.Point.Y),new Color(this.FillColor.R,this.FillColor.G,this.FillColor.B),this.a,new Color(this.StrokeColor.R,this.StrokeColor.G,this.StrokeColor.B),this.StrokeWidth,this.Rotation);
+    }
+
+    draw(Context)
+    {
+        this.BeginDraw(Context);
         Context.beginPath();
         Context.fillStyle = this.FillStyle;
         Context.strokeStyle = this.StrokeStyle;
@@ -299,15 +365,15 @@ class XForm extends DrawableObject
         Context.fill();
         Context.stroke();
         Context.closePath();
-        this.EndDraw();
+        this.EndDraw(Context);
     }
 }
 
-class PlayerPanel extends Panel
+class Player extends Panel
 {
-  constructor(Rectangle,PlayerStr,ActiveColor,PassiveColor,IsActive)
+  constructor(X,Y,Width,Height,PlayerStr,ActiveColor,PassiveColor,IsActive)
   {
-    super(Rectangle);
+    super(new BorderlessRectangle(new Point(X,Y),PassiveColor,Width,Height));
     this.Player = new Szoveg(PlayerStr,new Point(this.Rectangle.Point.X + this.Rectangle.getWidthPercentage(5),this.Rectangle.Point.Y + this.Rectangle.getHeightPercentage(93)),`bold ${this.Rectangle.getHeightPercentage(20)}px serif`,'black',-Math.PI/2);
     this.PlayerStrRectangle = new BorderlessRectangle(this.Rectangle.Point,ActiveColor,this.Rectangle.getWidthPercentage(7),this.Rectangle.Height);
     this.ActiveColor = ActiveColor;
@@ -323,19 +389,41 @@ class PlayerPanel extends Panel
   {
       return (this.IsActive) ? this.ActiveColor : this.PassiveColor;
   }
-  draw()
+  draw(Context)
   {
-    super.draw();
-    this.PlayerStrRectangle.draw();
-    this.Player.draw();
-    this.Square.draw();
-    this.Triangle.draw();
-    this.Circle.draw();
-    this.XForm.draw();
+    super.draw(Context);
+    this.PlayerStrRectangle.draw(Context);
+    this.Player.draw(Context);
+    this.Square.draw(Context);
+    this.Triangle.draw(Context);
+    this.Circle.draw(Context);
+    this.XForm.draw(Context);
   }
 }
 
-class OpponentsPanel extends Panel
+class GrabbedObject
+{
+  constructor(MousePoint,Object)
+  {
+    this.MousePoint = MousePoint;
+    this.Object = Object;
+    this.update = (event) => 
+    {
+      this.MousePoint.X = event.clientX;
+      this.MousePoint.Y = event.clientY;
+      this.Object.Point.X = this.MousePoint.X - this.Object.getSidePercentage(50);
+      this.Object.Point.Y = this.MousePoint.Y - this.Object.getSidePercentage(50);
+    }; 
+  }
+
+  draw(Context)
+  {
+    this.Object.draw(Context);
+  }
+
+}
+
+class InformationPanel extends Panel
 {
   constructor(Rectangle,Player1Image,Player2Image,P1Name,P2Name)
   {
@@ -351,13 +439,118 @@ class OpponentsPanel extends Panel
     this.P1 = new Szoveg(P1Name,new Point(this.dx1,this.dy+this.dh+this.Rectangle.getHeightPercentagePoint(10)),`bold ${this.Rectangle.getWidthPercentage(6)}px serif`,'black');
     this.P2 = new Szoveg(P2Name,new Point(this.dx2,this.dy+this.dh+this.Rectangle.getHeightPercentagePoint(10)),`bold ${this.Rectangle.getWidthPercentage(6)}px serif`,'black');
   }
-  draw()
+  draw(Context)
   {
-    super.draw();
+    super.draw(Context);
     Context.drawImage(this.Player1Image,this.dx1,this.dy,this.dw,this.dh);
     Context.drawImage(this.Player2Image,this.dx2,this.dy,this.dw,this.dh);
-    this.VS.draw();
-    this.P1.draw();
-    this.P2.draw();
+    this.VS.draw(Context);
+    this.P1.draw(Context);
+    this.P2.draw(Context);
+  }
+}
+
+class Game
+{
+  constructor(P1Name,P2Name)
+  {
+    this.Canvas = document.querySelector('canvas');
+    this.Context = this.Canvas.getContext('2d');
+    this.P1Name= P1Name;
+    this.P2Name = P2Name;
+    this.CellSpaceDivNum = 200;
+    this.CellHeightWidthDivNum = 11;
+    this.GrabbedObject = null;
+    this.CurrentPlayer = 0;
+    this.resizeCanvas();
+    window.addEventListener('resize', ()=> {this.resizeCanvas();}, false);
+    this.Canvas.addEventListener('mousedown', function(event) {
+        event.preventDefault();
+        let point = new Point(event.clientX,event.clientY);
+        let player = game.Players[game.CurrentPlayer];
+        if(player.Square.InThis(point)) 
+        {
+          game.GrabbedObject = new GrabbedObject(point,player.Square.Copy());
+        }
+        else if(player.Triangle.InThis(point))
+        {
+          game.GrabbedObject = new GrabbedObject(point,player.Triangle.Copy());
+        } 
+        else if(player.XForm.InThis(point))
+        {
+          game.GrabbedObject = new GrabbedObject(point,player.XForm.Copy());
+        }
+        else if(player.Circle.InThis(point))
+        {
+          game.GrabbedObject = new GrabbedObject(point,player.Circle.Copy());
+        }
+        if(game.GrabbedObject!=null)
+        {
+          game.Canvas.addEventListener('mousemove',game.GrabbedObject.update);
+        }
+    }, false);
+    this.Canvas.addEventListener('mouseup', function(event) {
+      event.preventDefault();
+      if(game.GrabbedObject!=null)
+      {
+          game.Table.PutIfValid(game.GrabbedObject.Object);
+        game.Canvas.removeEventListener('mousemove',game.GrabbedObject.update);
+        game.GrabbedObject = null;
+      }
+  }, false);
+  }
+  render()
+  {
+    this.Context.clearRect(0,0,this.Canvas.width,this.Canvas.height);
+    this.Table.draw(this.Context);
+    this.Players[0].draw(this.Context);
+    this.Players[1].draw(this.Context);
+    this.InformationPanel.draw(this.Context);
+    if(this.GrabbedObject!=null)
+    {
+      this.GrabbedObject.draw(this.Context);
+    }
+  }
+  resizeCanvas()
+  {
+    this.Canvas.width = window.innerWidth;
+    this.Canvas.height = window.innerHeight;
+    this.CellHeightWidth = this.Canvas.width/this.CellHeightWidthDivNum;
+    this.CellSpace = this.Canvas.width/this.CellSpaceDivNum;
+    let tables = [];
+    for(let i = 0;i<16;i++)
+    {
+      let color = ((i<2 && i >=0)|| (i<6&& i>=4) || (i<12&& i>=10) || (i<16&&i>=14))? Colors.GreenCellColor():Colors.YellowCellColor();
+      let point = this.getPoint(i);
+      tables.push(new Cell(point,color,this.CellHeightWidth,null,-1));
+    }
+    this.Table = new Table(tables);
+    let PanelWidths = this.Canvas.width/4;
+    let InformationPanelHeight = this.cellPos(4,3)/3;
+    let PlayerPanelHeight = this.cellPos(4,3)/5;
+    let X = this.Canvas.width/2+this.Canvas.width/16;
+    this.Players = 
+    [
+      new Player(X,this.cellPos(4,3)/2,PanelWidths,PlayerPanelHeight,this.P1Name,Colors.P1ActiveColor(),Colors.P1PassiveColor(),this.CurrentPlayer==0), 
+      new Player(X,this.cellPos(4,3)-PlayerPanelHeight,PanelWidths,PlayerPanelHeight,this.P2Name,Colors.P2ActiveColor(),Colors.P2PassiveColor(),this.CurrentPlayer==1)
+    ];
+    let player1Image = document.createElement('img');
+    player1Image.src = 'Images/piros.png';
+    let player2Image = document.createElement('img');
+    player2Image.src = 'Images/halvany_zold.png';
+    this.InformationPanel = new InformationPanel(new BorderlessRectangle(new Point(X,0),Colors.YellowCellColor(),PanelWidths,InformationPanelHeight),player1Image,player2Image,this.P1Name,this.P2Name);
+    this.render();
+  }
+
+  getPoint(i)
+  {
+    let maradek = i%4;
+    let megvan = Math.floor(i/4);
+    return new Point(this.cellPos(maradek,maradek),this.cellPos(megvan,megvan));
+  }
+
+  cellPos(CellHeightWidthNum,CellSpaceNum)
+  {
+    return (this.CellHeightWidth*CellHeightWidthNum)+(this.CellSpace*CellSpaceNum);
   }
 }
