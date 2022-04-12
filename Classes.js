@@ -1,5 +1,38 @@
 //Base Classes
 
+class Colors
+{
+  static P1ActiveColor()
+  {
+    return new Color(237,28,36);
+  }
+
+  static P1PassiveColor()
+  {
+    return new Color(252,133,133);
+  }
+
+  static P2ActiveColor()
+  {
+    return new Color(34,177,76);
+  }
+
+  static P2PassiveColor()
+  {
+    return new Color(162,255,162);
+  }
+
+  static GreenCellColor()
+  {
+    new Color(104,175,104);
+  }
+
+  static YellowCellColor()
+  {
+    new Color(231, 231, 103);
+  }
+}
+
 class Drawable
 {
   constructor(Point,Rotation,FillStyle,StrokeStyle)
