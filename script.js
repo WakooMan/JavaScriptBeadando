@@ -5,3 +5,4 @@ const game = new Game("Viktor","Viki");
     requestAnimationFrame(next);
   }
   next();
+  new PlayerLogics();
