@@ -1,0 +1,3 @@
+-Szöveg középre igazítása
+-Játék befejezésének ellenőrzése
+-Játék befejezésének jelzése
