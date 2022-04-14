@@ -290,3 +290,23 @@ class CellView extends View
         this.#Rectangle.Draw(Context,this.#Cell.Point(),0,this.#Cell.Color().ToString(),this.#Cell.a(),this.#Cell.a());
     }
 }
+
+class DraggedObjectView extends View
+{
+    #DragLogic;
+
+    constructor(DragLogic)
+    {
+        super();
+        this.#DragLogic = DragLogic;
+    }
+
+    OnRender(Context)
+    {
+        let DraggedObject = this.#DragLogic.DraggedObject();
+        if(DraggedObject!=null)
+        {
+            DraggedObject.Drawable().Draw(Context,DraggedObject.Point(),0,DraggedObject.FillStyle(),'black',DraggedObject.StrokeWidth());
+        }
+    }
+}

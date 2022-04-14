@@ -378,3 +378,118 @@ class Cell
         this.#Point = Game.GetPoint(this.#Row,this.#Column);
     }
 }
+
+class DragLogic extends GameLogic
+{
+    #DraggedObject;
+    #TableLogic;
+    #PlayerLogic;
+    #Canvas;
+    constructor(PlayerLogic,TableLogic,Canvas)
+    {
+        super();
+        this.#DraggedObject = null;
+        this.#TableLogic = TableLogic;
+        this.#PlayerLogic = PlayerLogic;
+        this.#Canvas = Canvas;
+        this.AddView(new DraggedObjectView(this));
+    }
+
+    DraggedObject()
+    {
+        return this.#DraggedObject;
+    }
+
+    OnMouseDown(event)
+    {
+        let point = new Point(event.clientX,event.clientY);
+        for(let i=0;i<4;i++)
+        {
+            let lesserX = this.#PlayerLogic.GetCurrentPlayer().PVObjectPoints()[i].X;
+            let lesserY = this.#PlayerLogic.GetCurrentPlayer().PVObjectPoints()[i].Y;
+            let greaterX = lesserX + this.#PlayerLogic.GetCurrentPlayer().a();
+            let greaterY = lesserY + this.#PlayerLogic.GetCurrentPlayer().a();
+            if(this.#PlayerLogic.GetCurrentPlayer().PVObjectCounts()[i] > 0&& point.IsInRectangle(lesserX,greaterX,lesserY,greaterY))
+            {
+                let drawable;
+                switch(i)
+                {
+                    case 0:
+                        drawable = new Square();
+                        break;
+                    case 1:
+                        drawable = new Triangle();
+                        break;
+                    case 2:
+                        drawable = new Circle();
+                        break;
+                    case 3:
+                        drawable = new XForm();
+                        break;
+                }
+                this.#DraggedObject = new DraggedObject(drawable,point.Subtract(Calculator.Percentage(this.#PlayerLogic.GetCurrentPlayer().a(),50)),this.#PlayerLogic.GetCurrentPlayer());
+                this.#Canvas.addEventListener('mousemove',this.OnMouseMove);
+            }
+        }
+    }
+
+    OnMouseUp(event)
+    {
+        this.#Canvas.removeEventListener('mousemove',this.OnMouseMove);
+        this.#DraggedObject= null;
+    }
+
+    OnMouseMove(event)
+    {
+        let p = new Point(event.clientX,event.clientY);
+        let point = p.Subtract(Calculator.Percentage(this.#PlayerLogic.GetCurrentPlayer().a(),50));
+        this.#DraggedObject.SetPoint(point.X,point.Y);
+    }
+
+
+
+    Resize(CanvasWidth,CanvasHeight)
+    {
+
+    }
+}
+
+class DraggedObject
+{
+    #Drawable;
+    #Object;
+    #Point;
+    constructor(Drawable,Point,Object)
+    {
+        this.#Drawable = Drawable;
+        this.#Object = Object;
+        this.#Point = Point;
+    }
+    Drawable()
+    {
+        return this.#Drawable;
+    }
+
+    Point()
+    {
+        return this.#Point;
+    }
+
+    FillStyle()
+    {
+        return this.#Object.GetCurrentColor().ToString();
+    }
+
+    StrokeWidth()
+    {
+        return this.#Object.PVObjectStrokeWidth();
+    }
+    SetPoint(X,Y)
+    {
+        this.#Point= new Point(X,Y);
+    }
+    a()
+    {
+        return this.#Object.a();
+    }
+}

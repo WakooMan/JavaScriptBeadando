@@ -65,4 +65,9 @@ class Point
 
     return lesserX <= this.X && greaterX >= this.X && lesserY <= this.Y && greaterY >= this.Y;
   }
+
+  Subtract(number)
+  {
+      return new Point(this.X-number,this.Y-number);
+  }
 }
