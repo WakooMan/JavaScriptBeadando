@@ -278,24 +278,103 @@ class Player
 class TableLogic extends GameLogic
 {
     #Cells;
-    constructor(CanvasWidth,CanvasHeight)
+    #Game;
+    constructor(Game,CanvasWidth,CanvasHeight)
     {
         super();
         this.#Cells=[];
+        this.#Game = Game;
         for(let i=0;i<16;i++)
         {
-            
+            let Color = ((i<2 && i >=0)|| (i<6&& i>=4) || (i<12&& i>=10) || (i<16&&i>=14))? Colors.GreenCellColor():Colors.YellowCellColor();
+            let Row = Math.floor(i/4) + 1;
+            let Column = (i%4)+1;
+            let Quarter;
+            if((i<2 && i >=0)|| (i<6&& i>=4))
+            {
+                Quarter = 1;
+            }
+            else if( (i<4&& i>=2) || (i<8&&i>=6))
+            {
+                Quarter = 2;
+            }
+            else if( (i<10&& i>=8) || (i<14&&i>=12))
+            {
+                Quarter = 3;
+            }
+            else if( (i<12&& i>=10) || (i<16&&i>=14))
+            {
+                Quarter = 4;
+            }
+            this.#Cells.push(new Cell(Row,Column,Quarter,Color));
         }
+        this.Resize(CanvasWidth,CanvasHeight);
+        this.AddView(new TableView(this.#Cells));
     }
 
     Resize(CanvasWidth,CanvasHeight)
     {
-
+        this.#Cells.forEach((value) => value.Resize(this.#Game));
     }
 
 }
 
 class Cell
 {
+    #Object;
+    #Row;
+    #Column;
+    #Quarter;
+    #Color
+    #a;
+    #Point;
 
+    constructor(Row,Column,Quarter,Color)
+    {
+        this.#Object = null;
+        this.#Row = Row;
+        this.#Column = Column;
+        this.#Quarter = Quarter;
+        this.#Color = Color;
+    }
+
+    a()
+    {
+        return this.#a;
+    }
+
+    Quarter()
+    {
+        return this.#Quarter;
+    }
+
+    Object()
+    {
+        return this.#Object;
+    }
+
+    Column()
+    {
+        return this.#Column;
+    }
+
+    Row()
+    {
+        return this.#Row;
+    }
+
+    Point()
+    {
+        return this.#Point;
+    }
+
+    Color()
+    {
+        return this.#Color;
+    }
+    Resize(Game)
+    {
+        this.#a = Game.CellHeightWidth();
+        this.#Point = Game.GetPoint(this.#Row,this.#Column);
+    }
 }

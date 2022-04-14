@@ -3,11 +3,15 @@ class Game
   #Canvas;
   #Context;
   #PlayerLogic;
+  #TableLogic;
+  #CellSpace;
+  #CellHeightWidth;
   constructor(P1Name,P2Name)
   {
     this.#Canvas = document.querySelector('canvas');
     this.#Context = this.#Canvas.getContext('2d');
     this.#PlayerLogic = new PlayerLogics(this,this.#Canvas.width,this.#Canvas.height,P1Name,P2Name);
+    this.#TableLogic = new TableLogic(this,this.#Canvas.width,this.#Canvas.height);
     window.addEventListener('resize', ()=> {this.ResizeCanvas();}, false);
     this.ResizeCanvas();
     /*this.Players = 
@@ -69,14 +73,16 @@ class Game
     //   this.GrabbedObject.draw(this.Context);
     // }
     this.#PlayerLogic.RenderAllViews(this.#Context);
+    this.#TableLogic.RenderAllViews(this.#Context);
   }
   ResizeCanvas()
   {
     this.#Canvas.width = window.innerWidth;
     this.#Canvas.height = window.innerHeight;
-    this.CellHeightWidth = Calculator.Percentage(this.#Canvas.width,9);
-    this.CellSpace = Calculator.Percentage(this.#Canvas.width,0.5);
+    this.#CellHeightWidth = Calculator.Percentage(this.#Canvas.width,9);
+    this.#CellSpace = Calculator.Percentage(this.#Canvas.width,0.5);
     this.#PlayerLogic.Resize(this.#Canvas.width,this.#Canvas.height);
+    this.#TableLogic.Resize(this.#Canvas.width,this.#Canvas.height);
    /* let tables = [];
     for(let i = 0;i<16;i++)
     {
@@ -141,16 +147,19 @@ class Game
     this.InformationPanel.ChangePlayerTurn(this.CurrentPlayer);
   }
 
-  getPoint(i)
+  GetPoint(Row,Column)
   {
-    let maradek = i%4;
-    let megvan = Math.floor(i/4);
-    return new Point(this.cellPos(maradek,maradek),this.cellPos(megvan,megvan));
+    return new Point(this.CellPos(Column-1,Column-1),this.CellPos(Row-1,Row-1));
+  }
+
+  CellHeightWidth()
+  {
+    return this.#CellHeightWidth;
   }
 
   CellPos(CellHeightWidthNum,CellSpaceNum)
   {
-    return (this.CellHeightWidth*CellHeightWidthNum)+(this.CellSpace*CellSpaceNum);
+    return (this.#CellHeightWidth*CellHeightWidthNum)+(this.#CellSpace*CellSpaceNum);
   }
 }
 

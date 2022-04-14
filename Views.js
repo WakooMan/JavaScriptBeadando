@@ -257,3 +257,36 @@ class PlayerView extends View
         });
     }
 }
+
+class TableView extends View
+{
+    #Cells;
+    constructor(Cells)
+    {
+        super();
+        this.#Cells = [];
+        Cells.forEach((value)=> this.#Cells.push(new CellView(value)));
+    }
+
+    OnRender(Context)
+    {
+        this.#Cells.forEach((value)=> value.OnRender(Context));
+    }
+}
+
+class CellView extends View
+{
+    #Cell;
+    #Rectangle;
+    constructor(cell)
+    {
+        super();
+        this.#Cell = cell;
+        this.#Rectangle = new BorderlessRectangle();
+    }
+
+    OnRender(Context)
+    {
+        this.#Rectangle.Draw(Context,this.#Cell.Point(),0,this.#Cell.Color().ToString(),this.#Cell.a(),this.#Cell.a());
+    }
+}
