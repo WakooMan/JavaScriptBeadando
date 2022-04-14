@@ -18,17 +18,14 @@ class Drawable
     Context.rotate(-Rotation);
     Context.translate(-Point.X,-Point.Y);
   }
-
-  Draw()
-  {
-      throw new Error('Abstract method should be initiated.');
-  }
 }
 
 class DText extends Drawable
 {
     constructor()
-    {}
+    {
+        super();
+    }
 
     Draw(Context,Point,Rotation,FontStyle,FillStyle,Text)
     {
@@ -45,7 +42,9 @@ class DText extends Drawable
 class Picture extends Drawable
 {
     constructor()
-    {}
+    {
+        super();
+    }
 
     Draw(Context,Point,Rotation,Image,ImageWidth,ImageHeight)
     {
@@ -58,7 +57,9 @@ class Picture extends Drawable
 class BorderlessRectangle extends Drawable
 {
     constructor()
-    {}
+    {
+        super();
+    }
 
     Draw(Context,Point,Rotation,FillStyle,Width,Height)
     {
@@ -66,6 +67,109 @@ class BorderlessRectangle extends Drawable
         Context.beginPath();
         Context.fillStyle = FillStyle;
         Context.fillRect(0,0,Width,Height);
+        Context.closePath();
+        this.EndDraw(Context,Point,Rotation);
+    }
+}
+
+class Square extends Drawable
+{
+    constructor()
+    {
+        super();
+    }
+
+    Draw(Context,Point,Rotation,a,FillStyle,StrokeStyle,StrokeWidth)
+    {
+        this.BeginDraw(Context,Point,Rotation);
+        Context.beginPath();
+        Context.fillStyle = FillStyle;
+        Context.strokeStyle = StrokeStyle;
+        Context.lineWidth = StrokeWidth;
+        Context.rect(0,0,a,a);
+        Context.fill();
+        Context.stroke();
+        Context.closePath();
+        this.EndDraw(Context,Point,Rotation);
+    }
+}
+
+class Triangle extends Drawable
+{
+    constructor()
+    {
+        super();
+    }
+
+    Draw(Context,Point,Rotation,a,FillStyle,StrokeStyle,StrokeWidth)
+    {
+        this.BeginDraw(Context,Point,Rotation);
+        Context.beginPath();
+        Context.fillStyle = FillStyle;
+        Context.strokeStyle = StrokeStyle;
+        Context.lineWidth = StrokeWidth;
+        Context.moveTo(Calculator.Percentage(a,50),0);
+        Context.lineTo(a,a);
+        Context.lineTo(0,a);
+        Context.lineTo(Calculator.Percentage(a,50),0);
+        Context.fill();
+        Context.stroke();
+        Context.closePath();
+        this.EndDraw(Context,Point,Rotation);
+    }
+}
+
+class Circle extends Drawable
+{
+    constructor()
+    {
+        super();
+    }
+
+    Draw(Context,Point,Rotation,a,FillStyle,StrokeStyle,StrokeWidth)
+    {
+        this.BeginDraw(Context,Point,Rotation);
+        Context.beginPath();
+        Context.fillStyle = FillStyle;
+        Context.strokeStyle = StrokeStyle;
+        Context.lineWidth = StrokeWidth;
+        Context.arc(Calculator.Percentage(a,50),Calculator.Percentage(a,50),Calculator.Percentage(a,50),0,Math.PI*2);
+        Context.fill();
+        Context.stroke();
+        Context.closePath();
+        this.EndDraw(Context,Point,Rotation);
+    }
+}
+
+class XForm extends Drawable
+{
+    constructor()
+    {
+        super();
+    }
+
+    Draw(Context,Point,Rotation,a,FillStyle,StrokeStyle,StrokeWidth)
+    {
+        this.BeginDraw(Context,Point,Rotation);
+        Context.beginPath();
+        Context.fillStyle = FillStyle;
+        Context.strokeStyle = StrokeStyle;
+        Context.lineWidth = StrokeWidth;
+        Context.moveTo(0,Calculator.Percentage(a,20));
+        Context.lineTo(Calculator.Percentage(a,20),0);
+        Context.lineTo(Calculator.Percentage(a,50),Calculator.Percentage(a,35));
+        Context.lineTo(a-Calculator.Percentage(a,20),0);
+        Context.lineTo(a,Calculator.Percentage(a,20));
+        Context.lineTo(a-Calculator.Percentage(a,35),Calculator.Percentage(a,50));
+        Context.lineTo(a,a-Calculator.Percentage(a,20));
+        Context.lineTo(a-Calculator.Percentage(a,20),a);
+        Context.lineTo(Calculator.Percentage(a,50),a-Calculator.Percentage(a,35));
+        Context.lineTo(Calculator.Percentage(a,20),a);
+        Context.lineTo(0,a-Calculator.Percentage(a,20));
+        Context.lineTo(Calculator.Percentage(a,35),Calculator.Percentage(a,50));
+        Context.lineTo(0,Calculator.Percentage(a,20));
+        Context.fill();
+        Context.stroke();
         Context.closePath();
         this.EndDraw(Context,Point,Rotation);
     }
@@ -84,12 +188,13 @@ class InformationView extends View
     PlayerLogics;
     constructor(playerlogics)
     {
+        super();
         this.Rectangle = new BorderlessRectangle();
         this.PlayerLogics = playerlogics;
     }
     OnRender(Context)
     {
-        this.Rectangle.Draw(Context,this.PlayerLogics.CPVPanelPoint,0,this.PlayerLogics.CPVPanelBackColor,this.PlayerLogics.CPVPanelWidth,this.PlayerLogics.CPVPanelHeight);
+        this.Rectangle.Draw(Context,this.PlayerLogics.CPVPanelPoint(),0,this.PlayerLogics.CPVPanelBackColor().ToString(),this.PlayerLogics.CPVPanelWidth(),this.PlayerLogics.CPVPanelHeight());
     }
 }
 class CurrentPlayerView extends InformationView
@@ -108,10 +213,47 @@ class CurrentPlayerView extends InformationView
     OnRender(Context)
     {
         super.OnRender(Context);
-        this.#Picture.Draw(Context,this.PlayerLogics.GetCurrentPlayer().CPVImagePoint(),0,this.PlayerLogics.GetCurrentPlayer().ActiveImage,this.PlayerLogics.GetCurrentPlayer().CPVImageWidth(),this.PlayerLogics.GetCurrentPlayer().CPVImageHeight());
-        this.#Picture.Draw(Context,this.PlayerLogics.GetPassivePlayer().CPVImagePoint(),0,this.PlayerLogics.GetPassivePlayer().PassiveImage,this.PlayerLogics.GetPassivePlayer().CPVImageWidth(),this.PlayerLogics.GetPassivePlayer().CPVImageHeight());
+        this.#Picture.Draw(Context,this.PlayerLogics.GetCurrentPlayer().CPVImagePoint(),0,this.PlayerLogics.GetCurrentPlayer().Image(),this.PlayerLogics.GetCurrentPlayer().CPVImageWidth(),this.PlayerLogics.GetCurrentPlayer().CPVImageHeight());
+        this.#Picture.Draw(Context,this.PlayerLogics.GetPassivePlayer().CPVImagePoint(),0,this.PlayerLogics.GetPassivePlayer().Image(),this.PlayerLogics.GetPassivePlayer().CPVImageWidth(),this.PlayerLogics.GetPassivePlayer().CPVImageHeight());
         this.#Text.Draw(Context,this.PlayerLogics.CPVVSPoint(),0,this.PlayerLogics.CPVVSFontStyle(),this.PlayerLogics.CPVFontFillStyle(),'VS');
-        this.#Text.Draw(Context,this.PlayerLogics.GetCurrentPlayer().CPVTextPoint(),0,this.PlayerLogics.CPVPlayerFontStyle(),this.PlayerLogics.CPVFontFillStyle(),this.PlayerLogics.GetCurrentPlayer().Name);
-        this.#Text.Draw(Context,this.PlayerLogics.GetPassivePlayer().CPVTextPoint(),0,this.PlayerLogics.CPVPlayerFontStyle(),this.PlayerLogics.CPVFontFillStyle(),this.PlayerLogics.GetPassivePlayer().Name);
+        this.#Text.Draw(Context,this.PlayerLogics.GetCurrentPlayer().CPVTextPoint(),0,this.PlayerLogics.CPVPlayerFontStyle(),this.PlayerLogics.CPVFontFillStyle(),this.PlayerLogics.GetCurrentPlayer().Name());
+        this.#Text.Draw(Context,this.PlayerLogics.GetPassivePlayer().CPVTextPoint(),0,this.PlayerLogics.CPVPlayerFontStyle(),this.PlayerLogics.CPVFontFillStyle(),this.PlayerLogics.GetPassivePlayer().Name());
+    }
+}
+
+class PlayerView extends View
+{
+    #Player;
+    #Rectangle;
+    #Objects;
+    #Text;
+    constructor(player)
+    {
+        super();
+        this.#Player = player;
+        this.#Text = new DText();
+        this.#Rectangle = new BorderlessRectangle();
+        this.#Objects = 
+        [
+            new Square(),
+            new Triangle(),
+            new Circle(),
+            new XForm()
+        ];
+    }
+
+    OnRender(Context)
+    {
+        this.#Rectangle.Draw(Context,this.#Player.PVPanelPoint(),0,this.#Player.PassiveColor().ToString(),this.#Player.PVPanelWidth(),this.#Player.PVPanelHeight());
+        this.#Rectangle.Draw(Context,this.#Player.PVPanelPoint(),0,this.#Player.ActiveColor().ToString(),Calculator.Percentage(this.#Player.PVPanelWidth(),7),this.#Player.PVPanelHeight());
+        this.#Text.Draw(Context,this.#Player.PVNamePoint(),-Math.PI/2,this.#Player.PVNameFontStyle(),'black',this.#Player.Name());
+        let Points = this.#Player.PVObjectPoints();
+        let Counts = this.#Player.PVObjectCounts();
+        this.#Objects.forEach((value,index)=> 
+        {
+            value.Draw(Context,Points[index],0,this.#Player.a(),this.#Player.GetCurrentColor().ToString(),Colors.BlackColor().ToString(),this.#Player.PVObjectStrokeWidth());
+            this.#Objects[2].Draw(Context,new Point(Points[index].X + Calculator.Percentage(this.#Player.a(),90),Points[index].Y + Calculator.Percentage(this.#Player.a(),90)),0,Calculator.Percentage(this.#Player.PVPanelHeight(),15),Colors.YellowCellColor().ToString(),Colors.YellowCellColor().ToString(),0);
+            this.#Text.Draw(Context,new Point(Points[index].X + Calculator.Percentage(this.#Player.a(),90) + Calculator.Percentage(this.#Player.PVPanelHeight(),3) ,Points[index].Y + Calculator.Percentage(this.#Player.a(),90) + Calculator.Percentage(this.#Player.PVPanelHeight(),13.5)),0,this.#Player.PVNameFontStyle(),'black',Counts[index]);
+        });
     }
 }

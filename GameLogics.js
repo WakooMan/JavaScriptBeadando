@@ -4,11 +4,6 @@ class Calculator
     {
         return num*percentage/100;
     }
-
-    static MultiplyAndAdd(num1,num2,multiply1,multiply2)
-    {
-        return (num1*multiply1)+(num2*multiply2);
-    }
 }
 
 class GameLogic
@@ -33,9 +28,9 @@ class GameLogic
         this.#Views.pop();
     }
 
-    RenderAllViews()
+    RenderAllViews(Context)
     {
-        this.#Views.forEach((value)=> value.OnRender());
+        this.#Views.forEach((value)=> value.OnRender(Context));
     }
 
     Resize(CanvasWidth,CanvasHeight)
@@ -48,21 +43,22 @@ class PlayerLogics extends GameLogic
 {
     #CurrentPlayer;
     #Players
-    CPVPanelWidth;
-    CPVPanelHeight;
-    CPVPanelPoint;
-    CPVPanelBackColor;
+    #CPVPanelWidth;
+    #CPVPanelHeight;
+    #CPVPanelPoint;
+    #CPVPanelBackColor;
     Game;
-    constructor(Game,CanvasWidth,CanvasHeight)
+    constructor(Game,CanvasWidth,CanvasHeight,P1,P2)
     {
         super();
         this.#CurrentPlayer= 0;
         this.#Players = 
         [
-            new Player(0),
-            new Player(1)
+            new Player(0,P1),
+            new Player(1,P2)
         ];
         this.Game = Game;
+        this.#CPVPanelBackColor = Colors.YellowCellColor();
         this.Resize(CanvasWidth,CanvasHeight);
         this.AddView(new CurrentPlayerView(this));
         this.AddView(new PlayerView(this.#Players[0]));
@@ -71,16 +67,16 @@ class PlayerLogics extends GameLogic
     }
     Resize(CanvasWidth,CanvasHeight)
     {
-        this.CPVPanelWidth = Calculator.Percentage(CanvasWidth,25);
-        this.CPVPanelHeight = Calculator.Percentage(this.Game.CellPos(4,3),33);
-        this.CPVPanelPoint = new Point(Calculator.Percentage(CanvasWidth,56.25),0);
-        this.CPVPanelBackColor = Colors.YellowCellColor();
-        this.#Players.forEach((value)=> value.Resize(this.CPVPanelWidth,this.CPVPanelHeight,this.CPVPanelPoint));
+        this.#CPVPanelWidth = Calculator.Percentage(CanvasWidth,25);
+        this.#CPVPanelHeight = Calculator.Percentage(this.Game.CellPos(4,3),33);
+        this.#CPVPanelPoint = new Point(Calculator.Percentage(CanvasWidth,56.25),0);
+        this.#Players.forEach((value)=> value.Resize(this.#CPVPanelWidth,this.#CPVPanelHeight,this.#CPVPanelPoint,Calculator.Percentage(this.Game.CellPos(4,3),20),this.Game.CellPos(4,3)));
     }
 
     NextPlayer()
     {
         this.#CurrentPlayer = (this.#CurrentPlayer==0)?1:0;
+        this.#Players.forEach((value)=> value.NextPlayer());
     }
 
     GetCurrentPlayer()
@@ -95,7 +91,7 @@ class PlayerLogics extends GameLogic
 
     CPVVSFontStyle()
     {
-        return `bold ${Calculator.Percentage(this.CPVPanelWidth,20)}px serif`;
+        return `bold ${Calculator.Percentage(this.#CPVPanelWidth,20)}px serif`;
     }
 
     CPVFontFillStyle()
@@ -104,14 +100,34 @@ class PlayerLogics extends GameLogic
     }
     CPVPlayerFontStyle()
     {
-        return `bold ${Calculator.Percentage(this.CPVPanelWidth,6)}px serif`;;
+        return `bold ${Calculator.Percentage(this.#CPVPanelWidth,6)}px serif`;;
     }
 
     CPVVSPoint()
     {
         let X1 = this.#Players[0].CPVImagePoint().X;
         let X2 = this.#Players[1].CPVImagePoint().X;
-        return new Point(X1 + Calculator.Percentage((X2-X1),50),Calculator.Percentage(this.CPVPanelHeight,60));
+        return new Point(X1 + Calculator.Percentage((X2-X1),50),Calculator.Percentage(this.#CPVPanelHeight,60));
+    }
+
+    CPVPanelBackColor()
+    {
+        return this.#CPVPanelBackColor;
+    }
+
+    CPVPanelWidth()
+    {
+        return this.#CPVPanelWidth;
+    }
+
+    CPVPanelHeight()
+    {
+        return this.#CPVPanelHeight;
+    }
+
+    CPVPanelPoint()
+    {
+        return this.#CPVPanelPoint;
     }
 }
 
@@ -120,17 +136,34 @@ class Player
     #PanelHeight;
     #PanelWidth;
     #PanelPoint;
+    #PVPanelPoint;
+    #PVPanelHeight;
+    #ActiveImage;
+    #PassiveImage;
+    #Name;
+    #Counts;
+    #IsActive;
+    #Index;
 
-    constructor(index)
+    constructor(index,Name)
     {
         this.#PanelHeight=0;
         this.#PanelWidth=0;
         this.#PanelPoint=0;
-        this.Index=index;
+        this.#PVPanelHeight = 0;
+        this.#PVPanelPoint= null;
+        this.#Name = Name;
+        this.#Counts = [3,3,3,3];
+        this.#Index=index;
+        this.#ActiveImage = document.createElement('img');
+        this.#PassiveImage = document.createElement('img');
+        this.#ActiveImage.src = (this.#Index==0)? 'Images/piros.png':'Images/zold.png';
+        this.#PassiveImage.src = (this.#Index==0)? 'Images/halvany_piros.png':'Images/halvany_zold.png';
+        this.#IsActive = (this.#Index==0)? true: false;
     }
     CPVImagePoint()
     {
-        let x = (this.Index==0)?this.#PanelPoint.X+Calculator.Percentage(this.#PanelWidth,10):this.#PanelPoint.X+Calculator.Percentage(this.#PanelWidth,65); 
+        let x = (this.#Index==0)?this.#PanelPoint.X+Calculator.Percentage(this.#PanelWidth,10):this.#PanelPoint.X+Calculator.Percentage(this.#PanelWidth,65); 
         return new Point(x,Calculator.Percentage(this.#PanelHeight,20));
     }
 
@@ -150,10 +183,119 @@ class Player
         return new Point(imgPoint.X,imgPoint.Y + this.CPVImageHeight() + Calculator.Percentage(this.#PanelHeight,10));
     }
 
-    Resize(PanelWidth,PanelHeight,PanelPoint)
+    PVPanelWidth()
+    {
+        return this.#PanelWidth;
+    }
+
+    PVPanelHeight()
+    {
+        return this.#PVPanelHeight;
+    }
+
+    PVPanelPoint()
+    {
+        return this.#PVPanelPoint;
+    }
+
+    PVNamePoint()
+    {
+        return new Point(this.#PVPanelPoint.X + Calculator.Percentage(this.#PanelWidth,5),this.#PVPanelPoint.Y + Calculator.Percentage(this.#PVPanelHeight,93));
+    }
+
+    PVNameFontStyle()
+    {
+        return `bold ${Calculator.Percentage(this.#PVPanelHeight,20)}px serif`
+    }
+
+    Name()
+    {
+        return this.#Name;
+    }
+    GetCurrentColor()
+    {
+        return (this.#IsActive)? this.ActiveColor(): this.PassiveColor();
+    }
+
+    PassiveColor()
+    {
+        return (this.#Index==0)?Colors.P1PassiveColor():Colors.P2PassiveColor();
+    }
+
+    ActiveColor()
+    {
+        return (this.#Index==0)?Colors.P1ActiveColor():Colors.P2ActiveColor();
+    }
+
+    Image()
+    {
+        return (this.#IsActive)?this.#ActiveImage:this.#PassiveImage;
+    }
+
+    a()
+    {
+        return Calculator.Percentage(this.#PVPanelHeight,50);
+    }
+
+    PVObjectStrokeWidth()
+    {
+        return Calculator.Percentage(this.#PVPanelHeight,5);
+    }
+
+    PVObjectPoints()
+    {
+        let Y = this.#PVPanelPoint.Y +Calculator.Percentage(this.#PVPanelHeight,25);
+        let tomb = 
+        [
+            new Point(this.#PVPanelPoint.X + Calculator.Percentage(this.#PanelWidth,12),Y),
+            new Point(this.#PVPanelPoint.X + Calculator.Percentage(this.#PanelWidth,35),Y),
+            new Point(this.#PVPanelPoint.X + Calculator.Percentage(this.#PanelWidth,58),Y),
+            new Point(this.#PVPanelPoint.X + Calculator.Percentage(this.#PanelWidth,81),Y)
+        ];
+        return tomb;
+    }
+    NextPlayer()
+    {
+        this.#IsActive=!this.#IsActive;
+    }
+    PVObjectCounts()
+    {
+        return this.#Counts;
+    }
+
+    Resize(PanelWidth,PanelHeight,PanelPoint,PVPanelHeight,CellPos)
     {
         this.#PanelWidth = PanelWidth;
         this.#PanelHeight = PanelHeight;
         this.#PanelPoint = PanelPoint;
+        this.#PVPanelHeight = PVPanelHeight;
+        let X = this.#PanelPoint.X;
+        this.#PVPanelPoint = (this.#Index==0)?new Point(X,Calculator.Percentage(CellPos,50)):new Point(X,CellPos-this.#PVPanelHeight);
     }
+}
+
+
+class TableLogic extends GameLogic
+{
+    #Cells;
+    constructor(CanvasWidth,CanvasHeight)
+    {
+        super();
+        this.#Cells=[];
+        for(let i=0;i<16;i++)
+        {
+            
+        }
+    }
+
+    Resize(CanvasWidth,CanvasHeight)
+    {
+
+    }
+
+}
+
+class Cell
+{
+
 }
