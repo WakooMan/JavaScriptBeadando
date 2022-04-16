@@ -312,6 +312,37 @@ class TableLogic extends GameLogic
         this.AddView(new TableView(this.#Cells));
     }
 
+    IsGameOver()
+    {   
+        for(let i=1;i<5;i++)
+        {
+            let Array = 
+            [
+                this.#Cells.filter(value => value.Row() == i),
+                this.#Cells.filter(value => value.Column() == i),
+                this.#Cells.filter(value => value.Quarter() == i)
+            ];
+            for(let j=0;j<3;j++)
+            {
+                if(Array[j].every((value,index) => value.Object()!=null && Array[j].every((Value,Index)=> Value.Object()!=null && (index == Index || value.Object().Type() != Value.Object().Type()))))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    FindCell(Point)
+    {
+        return this.#Cells.find((value) => Point.IsInRectangle(value.Point().X,value.Point().X + value.a(), value.Point().Y, value.Point().Y + value.a()));
+    }
+
+    TypeCanBePlaced(Cell,Type)
+    {
+        return !this.#Cells.some((value) => (value.Row() != Cell.Row() || value.Column() != Cell.Column()) && (value.Row()== Cell.Row() || value.Column() == Cell.Column() || value.Quarter() == Cell.Quarter()) && value.Object()!=null && value.Object().Type() == Type);
+    }
+
     Resize(CanvasWidth,CanvasHeight)
     {
         this.#Cells.forEach((value) => value.Resize(this.#Game));
@@ -348,6 +379,12 @@ class Cell
         return this.#Quarter;
     }
 
+    Push(DraggedObject)
+    {
+        DraggedObject.SetPoint(this.#Point.X + this.#a/2 - DraggedObject.a()/2,this.#Point.Y + this.#a/2 - DraggedObject.a()/2);
+        this.#Object = DraggedObject;
+    }
+
     Object()
     {
         return this.#Object;
@@ -376,6 +413,10 @@ class Cell
     {
         this.#a = Game.CellHeightWidth();
         this.#Point = Game.GetPoint(this.#Row,this.#Column);
+        if(this.#Object != null)
+        {
+            this.#Object.SetPoint(this.#Point.X + this.#a/2 - this.#Object.a()/2,this.#Point.Y + this.#a/2 - this.#Object.a()/2);
+        }
     }
 }
 
@@ -384,6 +425,9 @@ class DragLogic extends GameLogic
     #DraggedObject;
     #TableLogic;
     #PlayerLogic;
+    #OnMouseMoveEvent;
+    #OnMouseDownEvent;
+    #OnMouseUpEvent;
     #Canvas;
     constructor(PlayerLogic,TableLogic,Canvas)
     {
@@ -392,6 +436,11 @@ class DragLogic extends GameLogic
         this.#TableLogic = TableLogic;
         this.#PlayerLogic = PlayerLogic;
         this.#Canvas = Canvas;
+        this.#OnMouseMoveEvent = this.OnMouseMove.bind(this);
+        this.#OnMouseDownEvent = this.OnMouseDown.bind(this);
+        this.#OnMouseUpEvent = this.OnMouseUp.bind(this);
+        this.#Canvas.addEventListener('mousedown',this.#OnMouseDownEvent);
+        this.#Canvas.addEventListener('mouseup',this.#OnMouseUpEvent);
         this.AddView(new DraggedObjectView(this));
     }
 
@@ -428,15 +477,35 @@ class DragLogic extends GameLogic
                         break;
                 }
                 this.#DraggedObject = new DraggedObject(drawable,point.Subtract(Calculator.Percentage(this.#PlayerLogic.GetCurrentPlayer().a(),50)),this.#PlayerLogic.GetCurrentPlayer());
-                this.#Canvas.addEventListener('mousemove',this.OnMouseMove);
+                this.#Canvas.addEventListener('mousemove',this.#OnMouseMoveEvent);
             }
         }
     }
 
     OnMouseUp(event)
     {
-        this.#Canvas.removeEventListener('mousemove',this.OnMouseMove);
-        this.#DraggedObject= null;
+        if(this.#DraggedObject!=null)
+        {
+            this.#Canvas.removeEventListener('mousemove',this.#OnMouseMoveEvent);
+            let point = new Point(event.clientX,event.clientY);
+            let Cell = this.#TableLogic.FindCell(point);
+            if(Cell!=null && this.#TableLogic.TypeCanBePlaced(Cell,this.#DraggedObject.Type()))
+            {
+                Cell.Push(this.#DraggedObject);
+                this.#PlayerLogic.GetCurrentPlayer().PVObjectCounts()[this.#DraggedObject.Drawable().Index()]--;
+                if(this.#TableLogic.IsGameOver())
+                {
+                    this.#Canvas.removeEventListener('mousedown',this.#OnMouseDownEvent);
+                    this.#Canvas.removeEventListener('mouseup',this.#OnMouseUpEvent);
+                    console.log(this.#PlayerLogic.GetCurrentPlayer().Name() + ' Won!');
+                }
+                else
+                {
+                    this.#PlayerLogic.NextPlayer();
+                }
+            }
+            this.#DraggedObject= null;
+        }
     }
 
     OnMouseMove(event)
@@ -457,17 +526,22 @@ class DragLogic extends GameLogic
 class DraggedObject
 {
     #Drawable;
-    #Object;
+    #Player;
     #Point;
-    constructor(Drawable,Point,Object)
+    constructor(Drawable,Point,Player)
     {
         this.#Drawable = Drawable;
-        this.#Object = Object;
+        this.#Player = Player;
         this.#Point = Point;
     }
     Drawable()
     {
         return this.#Drawable;
+    }
+
+    Type()
+    {
+        return this.#Drawable.Type();
     }
 
     Point()
@@ -477,12 +551,12 @@ class DraggedObject
 
     FillStyle()
     {
-        return this.#Object.GetCurrentColor().ToString();
+        return this.#Player.ActiveColor().ToString();
     }
 
     StrokeWidth()
     {
-        return this.#Object.PVObjectStrokeWidth();
+        return this.#Player.PVObjectStrokeWidth();
     }
     SetPoint(X,Y)
     {
@@ -490,6 +564,6 @@ class DraggedObject
     }
     a()
     {
-        return this.#Object.a();
+        return this.#Player.a();
     }
 }

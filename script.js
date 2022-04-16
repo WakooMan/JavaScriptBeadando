@@ -22,8 +22,6 @@ class Game
     this.#DragLogic = new DragLogic(this.#PlayerLogic,this.#TableLogic,this.#Canvas);
     window.addEventListener('resize', ()=> {this.ResizeCanvas();}, false);
     this.ResizeCanvas();
-    this.#Canvas.addEventListener('mousedown',this.#DragLogic.OnMouseDown);
-    this.#Canvas.addEventListener('mouseup',this.#DragLogic.OnMouseUp);
     /*this.Players = 
     [
       new Player(P1Name), 
@@ -157,22 +155,6 @@ class Game
         obj.Point = new Point(value.Rectangle.getWidthPercentagePoint(50)-obj.getSidePercentage(50),value.Rectangle.getHeightPercentagePoint(50)-obj.getSidePercentage(50));
       }
     });*/
-  }
-
-  ChangePlayerTurn()
-  {
-    this.CurrentPlayer = (this.CurrentPlayer==0)?1:0;
-    if(this.CurrentPlayer==0)
-    {
-      this.PlayerPanels[0].SetIsActive(true);
-      this.PlayerPanels[1].SetIsActive(false);
-    }
-    if(this.CurrentPlayer==1)
-    {
-      this.PlayerPanels[0].SetIsActive(false);
-      this.PlayerPanels[1].SetIsActive(true);
-    }
-    this.InformationPanel.ChangePlayerTurn(this.CurrentPlayer);
   }
 
   GetPoint(Row,Column)

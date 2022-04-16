@@ -92,6 +92,16 @@ class Square extends Drawable
         Context.closePath();
         this.EndDraw(Context,Point,Rotation);
     }
+
+    Type()
+    {
+        return 'Square';
+    }
+
+    Index()
+    {
+        return 0;
+    }
 }
 
 class Triangle extends Drawable
@@ -117,6 +127,16 @@ class Triangle extends Drawable
         Context.closePath();
         this.EndDraw(Context,Point,Rotation);
     }
+
+    Type()
+    {
+        return 'Triangle';
+    }
+
+    Index()
+    {
+        return 1;
+    }
 }
 
 class Circle extends Drawable
@@ -138,6 +158,16 @@ class Circle extends Drawable
         Context.stroke();
         Context.closePath();
         this.EndDraw(Context,Point,Rotation);
+    }
+
+    Type()
+    {
+        return 'Circle';
+    }
+
+    Index()
+    {
+        return 2;
     }
 }
 
@@ -172,6 +202,16 @@ class XForm extends Drawable
         Context.stroke();
         Context.closePath();
         this.EndDraw(Context,Point,Rotation);
+    }
+
+    Type()
+    {
+        return 'XForm';
+    }
+
+    Index()
+    {
+        return 3;
     }
 }
 
@@ -288,6 +328,10 @@ class CellView extends View
     OnRender(Context)
     {
         this.#Rectangle.Draw(Context,this.#Cell.Point(),0,this.#Cell.Color().ToString(),this.#Cell.a(),this.#Cell.a());
+        if(this.#Cell.Object()!=null)
+        {
+            this.#Cell.Object().Drawable().Draw(Context,this.#Cell.Object().Point(),0,this.#Cell.Object().a(),this.#Cell.Object().FillStyle(),'black',this.#Cell.Object().StrokeWidth());
+        }
     }
 }
 
@@ -306,7 +350,7 @@ class DraggedObjectView extends View
         let DraggedObject = this.#DragLogic.DraggedObject();
         if(DraggedObject!=null)
         {
-            DraggedObject.Drawable().Draw(Context,DraggedObject.Point(),0,DraggedObject.FillStyle(),'black',DraggedObject.StrokeWidth());
+            DraggedObject.Drawable().Draw(Context,DraggedObject.Point(),0,DraggedObject.a(),DraggedObject.FillStyle(),'black',DraggedObject.StrokeWidth());
         }
     }
 }
