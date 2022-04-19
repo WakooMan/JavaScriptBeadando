@@ -9,15 +9,27 @@
 </head>
 <body>
     <div id="nyitolap">
+      <div id="szabalyok">
+        <p>Játékszabályok</p>
+        <ul>
+          <li>2 játékos játszhat.</li>
+          <li>4x4-es táblára lehet 4 fajta alakzatot tenni.</li>
+          <li>Egy játkosnak 2 darab bábúja van mindegyik fajtából.</li>
+          <li>Egy sorban, oszlopban, négyzet alakú területen minden fajta bábúból csak egy lehet.</li>
+          <li>Az nyer, aki befejez egy sort,oszlopot vagy négyzetet négy különböző fajta bábúval, színtől függetlenül.</li>
+        </ul>
+      </div>
+      <div id="beallitasok" class="center">
       <p>QUANTIK</p>
-      <label for="player1" class="center">Player 1</label><br>
-      <input type="text" id="player1" name="player1_szovegmezo" value="1. Játékos" class="center"><br>
-      <label for="player2">Player 2</label><br>
-      <input type="text" id="player2" name="player2_szovegmezo" value="2. Játékos" class="center"><br>
-      <select id="savedgames">
-        <option value="None" selected="selected">None</option>
-      </select><br>
-      <button id="StartButton" class="center quantikbutton">START</button><br>
+        <label for="player1" class="center">Player 1</label><br>
+        <input type="text" id="player1" name="player1_szovegmezo" value="1. Játékos" class="center"><br>
+        <label for="player2">Player 2</label><br>
+        <input type="text" id="player2" name="player2_szovegmezo" value="2. Játékos" class="center"><br>
+        <select id="savedgames">
+          <option value="None" selected="selected">None</option>
+        </select><br>
+        <button id="StartButton" class="center quantikbutton">START</button><br>
+      </div>
     </div>
     <div id="jatekoldal">
         <button id="mentesgomb" class="quantikbutton">MENTÉS & KILÉPÉS</button>

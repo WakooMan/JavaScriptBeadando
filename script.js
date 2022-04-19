@@ -65,17 +65,17 @@ class Game
         });
     }
     this.#Key = this.#PlayerLogic.GetCurrentPlayer().Name() + ' vs ' + this.#PlayerLogic.GetPassivePlayer().Name() + ' ' + today.getFullYear() +'-'+today.getMonth()+'-'+today.getDay();
-    saved.push(
-      {
-        Key: this.#Key,
-        Cells : this.#TableLogic.GetCells(),
-        CurrentIndex : this.#PlayerLogic.GetCurrentIndex(),
-        Player1Nums: this.#PlayerLogic.GetP1Counts(),
-        Player2Nums: this.#PlayerLogic.GetP2Counts(),
-        P1: this.#PlayerLogic.GetP1Name(),
-        P2: this.#PlayerLogic.GetP2Name()
-      });
-    SavedGames.push(this.#Key);
+    let element = {
+      Key: this.#Key,
+      Cells : this.#TableLogic.GetCells(),
+      CurrentIndex : this.#PlayerLogic.GetCurrentIndex(),
+      Player1Nums: this.#PlayerLogic.GetP1Counts(),
+      Player2Nums: this.#PlayerLogic.GetP2Counts(),
+      P1: this.#PlayerLogic.GetP1Name(),
+      P2: this.#PlayerLogic.GetP2Name()
+    };
+    saved.push(element);
+    SavedGames.push(element);
     let option = document.createElement('option');
     option.value= this.#Key;
     option.innerText = this.#Key;
@@ -164,7 +164,10 @@ StartButton.addEventListener('click',()=>
   nytiolap.style.display = 'none';
   document.querySelector('#player1').value = '1. Játékos';
   document.querySelector('#player2').value = '2. Játékos';
+  document.querySelector('#player1').readOnly = false;
+  document.querySelector('#player2').readOnly = false;
   document.querySelector('#savedgames').value = 'None';
+  document.querySelector('#mentesgomb').style.display = 'inline';
   jatekoldal.style.display = 'block';
 });
 document.querySelector('#kilepesgomb').addEventListener('click',()=> 

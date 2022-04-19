@@ -107,10 +107,10 @@ class PlayerLogics extends GameLogic
         return this.#Players[1].PVObjectCounts();
     }
 
-    OnWin()
+    OnGameOver(IsDraw)
     {
         this.RemoveView();
-        this.AddView(new PlayerWonView(this));
+        this.AddView(new GameOverView(this,IsDraw));
         document.querySelector('#mentesgomb').style.display = 'none';
         let statistics = JSON.parse(localStorage.getItem('statistics'));
         if(statistics == null)
@@ -119,9 +119,9 @@ class PlayerLogics extends GameLogic
             statistics.push({
                 player1: this.#Players[0].Name(),
                 player2: this.#Players[1].Name(),
-                player1wins: (this.GetCurrentPlayer()==this.#Players[0])? 1 : 0,
-                player2wins: (this.GetCurrentPlayer()==this.#Players[1])? 1 : 0,
-                draw: 0
+                player1wins: (this.GetCurrentPlayer()==this.#Players[0] && !IsDraw)? 1 : 0,
+                player2wins: (this.GetCurrentPlayer()==this.#Players[1] && !IsDraw)? 1 : 0,
+                draw: (IsDraw) ? 1:0
             });
         }
         else
@@ -129,21 +129,40 @@ class PlayerLogics extends GameLogic
             let element = statistics.find(value => value.player1 == this.#Players[0].Name() && value.player2 == this.#Players[1].Name());
             if(element != null)
             {
-                (this.GetCurrentPlayer()==this.#Players[0])?element.player1wins++:element.player2wins++;
+                if(IsDraw)
+                {
+                    element.draw++;
+                }
+                else
+                {
+                    (this.GetCurrentPlayer()==this.#Players[0])?element.player1wins++:element.player2wins++;
+                }
             }
             else
             {
                 statistics.push({
                     player1: this.#Players[0].Name(),
                     player2: this.#Players[1].Name(),
-                    player1wins: (this.GetCurrentPlayer()==this.#Players[0])? 1 : 0,
-                    player2wins: (this.GetCurrentPlayer()==this.#Players[1])? 1 : 0,
-                    draw: 0
+                    player1wins: (this.GetCurrentPlayer()==this.#Players[0] && !IsDraw)? 1 : 0,
+                    player2wins: (this.GetCurrentPlayer()==this.#Players[1] && !IsDraw)? 1 : 0,
+                    draw: (IsDraw) ? 1:0
                 });
             }
         }
         localStorage.setItem('statistics',JSON.stringify(statistics));
-        console.log(localStorage.getItem('statistics'));
+        if(this.Game.Key()!=null)
+        {
+            let saved = JSON.parse(localStorage.getItem('SavedGames'));
+            document.querySelector('#savedgames').childNodes.forEach(value=> 
+                {
+                if(value.value == this.Game.Key())
+                {
+                    document.querySelector('#savedgames').removeChild(value);
+                }
+                });
+            saved = saved.filter(value => value.Key != this.Game.Key());
+            SavedGames = SavedGames.filter(value => value != this.Game.Key());
+        }
     }
 
     CPVWinImagePoint()
@@ -448,8 +467,12 @@ class TableLogic extends GameLogic
         return array;
     }
 
-    IsGameOver()
+    IsGameOver(PlayerLogic)
     {   
+        if(PlayerLogic.GetP1Counts().every(value=> value == 0) && PlayerLogic.GetP2Counts().every(value => value == 0))
+        {
+            return {IsGameOver: true, IsDraw: true};
+        }
         for(let i=1;i<5;i++)
         {
             let Array = 
@@ -462,11 +485,11 @@ class TableLogic extends GameLogic
             {
                 if(Array[j].every((value,index) => value.Object()!=null && Array[j].every((Value,Index)=> Value.Object()!=null && (index == Index || value.Object().Type() != Value.Object().Type()))))
                 {
-                    return true;
+                    return {IsGameOver: true, IsDraw: false};
                 }
             }
         }
-        return false;
+        return {IsGameOver: false, IsDraw: false};
     }
 
     FindCell(Point)
@@ -631,11 +654,12 @@ class DragLogic extends GameLogic
             {
                 Cell.Push(this.#DraggedObject);
                 this.#PlayerLogic.GetCurrentPlayer().PVObjectCounts()[this.#DraggedObject.Drawable().Index()]--;
-                if(this.#TableLogic.IsGameOver())
+                let temp = this.#TableLogic.IsGameOver(this.#PlayerLogic);
+                if(temp.IsGameOver)
                 {
                     this.#Canvas.removeEventListener('mousedown',this.#OnMouseDownEvent);
                     this.#Canvas.removeEventListener('mouseup',this.#OnMouseUpEvent);
-                    this.#PlayerLogic.OnWin();
+                    this.#PlayerLogic.OnGameOver(temp.IsDraw);
                 }
                 else
                 {

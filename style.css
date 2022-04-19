@@ -1,16 +1,30 @@
-#nyitolap > p
+#beallitasok > p
 {
     font-size: 5vw;
 }
 
-#nyitolap > *
+#beallitasok > *
 {
     margin-bottom :2vw;
     font-size: 2vw;
 }
-#nyitolap
+#beallitasok
 {
     text-align: center;
+}
+#szabalyok
+{
+    width: 20%;
+    border: 1vw solid darkgreen;
+    background-color: rgb(231,231,103);
+    color:darkgreen;
+    font-style: bold;
+    font-size: 1.5vw;
+    float: left;
+}
+#szabalyok > p
+{
+    font-size: 3vw;
 }
 body
 {

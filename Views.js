@@ -238,22 +238,33 @@ class InformationView extends View
     }
 }
 
-class PlayerWonView extends InformationView
+class GameOverView extends InformationView
 {
     #Text;
     #Picture;
-    constructor(playerlogics)
+    #IsDraw;
+    constructor(playerlogics,IsDraw)
     {
         super(playerlogics);
         this.#Text = new DText();
         this.#Picture = new Picture();
+        this.#IsDraw = IsDraw;
     }
 
     OnRender(Context)
     {
         super.OnRender(Context);
-        this.#Picture.Draw(Context,this.PlayerLogics.CPVWinImagePoint(),0,this.PlayerLogics.GetCurrentPlayer().Image(),this.PlayerLogics.GetCurrentPlayer().CPVImageWidth(),this.PlayerLogics.GetCurrentPlayer().CPVImageHeight());
-        this.#Text.Draw(Context,this.PlayerLogics.CPVWinTextPoint(),0,this.PlayerLogics.CPVPlayerFontStyle(),this.PlayerLogics.CPVFontFillStyle(),(this.PlayerLogics.GetCurrentPlayer().ActiveColor() == Colors.P1ActiveColor())?'A piros játékos nyert!':'A zöld játékos nyert!');
+        if(!this.#IsDraw)
+        {
+            this.#Picture.Draw(Context,this.PlayerLogics.CPVWinImagePoint(),0,this.PlayerLogics.GetCurrentPlayer().Image(),this.PlayerLogics.GetCurrentPlayer().CPVImageWidth(),this.PlayerLogics.GetCurrentPlayer().CPVImageHeight());
+            this.#Text.Draw(Context,this.PlayerLogics.CPVWinTextPoint(),0,this.PlayerLogics.CPVPlayerFontStyle(),this.PlayerLogics.CPVFontFillStyle(),(this.PlayerLogics.GetCurrentPlayer().ActiveColor() == Colors.P1ActiveColor())?'A piros játékos nyert!':'A zöld játékos nyert!');
+        }
+        else
+        {
+            this.#Picture.Draw(Context,this.PlayerLogics.GetCurrentPlayer().CPVImagePoint(),0,this.PlayerLogics.GetCurrentPlayer().Image(),this.PlayerLogics.GetCurrentPlayer().CPVImageWidth(),this.PlayerLogics.GetCurrentPlayer().CPVImageHeight());
+            this.#Picture.Draw(Context,this.PlayerLogics.GetPassivePlayer().CPVImagePoint(),0,this.PlayerLogics.GetPassivePlayer().Image(),this.PlayerLogics.GetPassivePlayer().CPVImageWidth(),this.PlayerLogics.GetPassivePlayer().CPVImageHeight());
+            this.#Text.Draw(Context,this.PlayerLogics.CPVWinTextPoint(),0,this.PlayerLogics.CPVPlayerFontStyle(),this.PlayerLogics.CPVFontFillStyle(),'Döntetlen!');
+        }
     }
 }
 
