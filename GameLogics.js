@@ -60,9 +60,9 @@ class PlayerLogics extends GameLogic
         this.Game = Game;
         this.#CPVPanelBackColor = Colors.YellowCellColor();
         this.Resize(CanvasWidth,CanvasHeight);
-        this.AddView(new CurrentPlayerView(this));
         this.AddView(new PlayerView(this.#Players[0]));
         this.AddView(new PlayerView(this.#Players[1]));
+        this.AddView(new CurrentPlayerView(this));
 
     }
     Resize(CanvasWidth,CanvasHeight)
@@ -71,6 +71,89 @@ class PlayerLogics extends GameLogic
         this.#CPVPanelHeight = Calculator.Percentage(this.Game.CellPos(4,3),33);
         this.#CPVPanelPoint = new Point(Calculator.Percentage(CanvasWidth,56.25),0);
         this.#Players.forEach((value)=> value.Resize(this.#CPVPanelWidth,this.#CPVPanelHeight,this.#CPVPanelPoint,Calculator.Percentage(this.Game.CellPos(4,3),20),this.Game.CellPos(4,3)));
+    }
+
+    Load(GameData)
+    {
+        if(this.#CurrentPlayer != GameData.CurrentIndex)
+        {
+            this.NextPlayer();
+        }
+        this.#Players.forEach(value => value.Load(GameData));
+    }
+
+    GetCurrentIndex()
+    {
+        return this.#CurrentPlayer;
+    }
+
+    GetP1Name()
+    {
+        return this.#Players[0].Name();
+    }
+
+    GetP2Name()
+    {
+        return this.#Players[1].Name();
+    }
+
+    GetP1Counts()
+    {
+        return this.#Players[0].PVObjectCounts();
+    }
+
+    GetP2Counts()
+    {
+        return this.#Players[1].PVObjectCounts();
+    }
+
+    OnWin()
+    {
+        this.RemoveView();
+        this.AddView(new PlayerWonView(this));
+        document.querySelector('#mentesgomb').style.display = 'none';
+        let statistics = JSON.parse(localStorage.getItem('statistics'));
+        if(statistics == null)
+        {
+            statistics=[];
+            statistics.push({
+                player1: this.#Players[0].Name(),
+                player2: this.#Players[1].Name(),
+                player1wins: (this.GetCurrentPlayer()==this.#Players[0])? 1 : 0,
+                player2wins: (this.GetCurrentPlayer()==this.#Players[1])? 1 : 0,
+                draw: 0
+            });
+        }
+        else
+        {
+            let element = statistics.find(value => value.player1 == this.#Players[0].Name() && value.player2 == this.#Players[1].Name());
+            if(element != null)
+            {
+                (this.GetCurrentPlayer()==this.#Players[0])?element.player1wins++:element.player2wins++;
+            }
+            else
+            {
+                statistics.push({
+                    player1: this.#Players[0].Name(),
+                    player2: this.#Players[1].Name(),
+                    player1wins: (this.GetCurrentPlayer()==this.#Players[0])? 1 : 0,
+                    player2wins: (this.GetCurrentPlayer()==this.#Players[1])? 1 : 0,
+                    draw: 0
+                });
+            }
+        }
+        localStorage.setItem('statistics',JSON.stringify(statistics));
+        console.log(localStorage.getItem('statistics'));
+    }
+
+    CPVWinImagePoint()
+    {
+        return new Point(this.#CPVPanelPoint.X + this.#CPVPanelWidth/2 - this.GetCurrentPlayer().CPVImageWidth()/2,this.#CPVPanelPoint.Y + this.#CPVPanelHeight/2 - this.GetCurrentPlayer().CPVImageHeight()/2);
+    }
+
+    CPVWinTextPoint()
+    {
+        return new Point(this.#CPVPanelPoint.X + this.#CPVPanelWidth/2 - this.GetCurrentPlayer().CPVImageWidth()/2,this.#CPVPanelPoint.Y + this.#CPVPanelHeight/2 + this.GetCurrentPlayer().CPVImageHeight()/2 + Calculator.Percentage(this.#CPVPanelHeight,10));
     }
 
     NextPlayer()
@@ -153,7 +236,7 @@ class Player
         this.#PVPanelHeight = 0;
         this.#PVPanelPoint= null;
         this.#Name = Name;
-        this.#Counts = [3,3,3,3];
+        this.#Counts = [2,2,2,2];
         this.#Index=index;
         this.#ActiveImage = document.createElement('img');
         this.#PassiveImage = document.createElement('img');
@@ -165,6 +248,11 @@ class Player
     {
         let x = (this.#Index==0)?this.#PanelPoint.X+Calculator.Percentage(this.#PanelWidth,10):this.#PanelPoint.X+Calculator.Percentage(this.#PanelWidth,65); 
         return new Point(x,Calculator.Percentage(this.#PanelHeight,20));
+    }
+
+    Load(GameData)
+    {
+        this.#Counts = (this.#Index==0)?GameData.Player1Nums: GameData.Player2Nums;
     }
 
     CPVImageWidth()
@@ -225,6 +313,11 @@ class Player
     ActiveColor()
     {
         return (this.#Index==0)?Colors.P1ActiveColor():Colors.P2ActiveColor();
+    }
+
+    Index()
+    {
+        return this.#Index;
     }
 
     Image()
@@ -310,6 +403,49 @@ class TableLogic extends GameLogic
         }
         this.Resize(CanvasWidth,CanvasHeight);
         this.AddView(new TableView(this.#Cells));
+    }
+
+    Load(GameData,P1,P2)
+    {
+        GameData.Cells.forEach(value=>
+            {
+                let Drawable;
+                switch(value.DrawableIndex)
+                {
+                    case 0:
+                        Drawable = new Square();
+                        break;
+                    case 1:
+                        Drawable = new Triangle();
+                        break;
+                    case 2:
+                            Drawable = new Circle();
+                        break;
+                    case 3:
+                        Drawable = new XForm();
+                        break;
+                }
+                this.#Cells[value.Index].Push(new DraggedObject(Drawable,value.Point,(value.PlayerIndex==0)?P1:P2));
+            });
+    }
+
+    GetCells()
+    {
+        let array = [];
+        this.#Cells.forEach((value,index)=>
+            {
+                if(value.Object()!=null)
+                {
+                    array.push(
+                        {
+                            Index: index,
+                            DrawableIndex: value.Object().Drawable().Index(),
+                            Point: value.Object().Point(),
+                            PlayerIndex: value.Object().Player().Index() 
+                        });
+                }
+            });
+        return array;
     }
 
     IsGameOver()
@@ -451,7 +587,8 @@ class DragLogic extends GameLogic
 
     OnMouseDown(event)
     {
-        let point = new Point(event.clientX,event.clientY);
+        let rect = this.#Canvas.getBoundingClientRect();
+        let point = new Point(event.clientX - rect.left,event.clientY - rect.top);
         for(let i=0;i<4;i++)
         {
             let lesserX = this.#PlayerLogic.GetCurrentPlayer().PVObjectPoints()[i].X;
@@ -487,9 +624,10 @@ class DragLogic extends GameLogic
         if(this.#DraggedObject!=null)
         {
             this.#Canvas.removeEventListener('mousemove',this.#OnMouseMoveEvent);
-            let point = new Point(event.clientX,event.clientY);
+            let rect = this.#Canvas.getBoundingClientRect();
+            let point = new Point(event.clientX - rect.left,event.clientY - rect.top);
             let Cell = this.#TableLogic.FindCell(point);
-            if(Cell!=null && this.#TableLogic.TypeCanBePlaced(Cell,this.#DraggedObject.Type()))
+            if(Cell!=null && Cell.Object()==null && this.#TableLogic.TypeCanBePlaced(Cell,this.#DraggedObject.Type()))
             {
                 Cell.Push(this.#DraggedObject);
                 this.#PlayerLogic.GetCurrentPlayer().PVObjectCounts()[this.#DraggedObject.Drawable().Index()]--;
@@ -497,7 +635,7 @@ class DragLogic extends GameLogic
                 {
                     this.#Canvas.removeEventListener('mousedown',this.#OnMouseDownEvent);
                     this.#Canvas.removeEventListener('mouseup',this.#OnMouseUpEvent);
-                    console.log(this.#PlayerLogic.GetCurrentPlayer().Name() + ' Won!');
+                    this.#PlayerLogic.OnWin();
                 }
                 else
                 {
@@ -510,7 +648,8 @@ class DragLogic extends GameLogic
 
     OnMouseMove(event)
     {
-        let p = new Point(event.clientX,event.clientY);
+        let rect = this.#Canvas.getBoundingClientRect();
+        let p = new Point(event.clientX - rect.left,event.clientY - rect.top);
         let point = p.Subtract(Calculator.Percentage(this.#PlayerLogic.GetCurrentPlayer().a(),50));
         this.#DraggedObject.SetPoint(point.X,point.Y);
     }
@@ -537,6 +676,11 @@ class DraggedObject
     Drawable()
     {
         return this.#Drawable;
+    }
+
+    Player()
+    {
+        return this.#Player;
     }
 
     Type()

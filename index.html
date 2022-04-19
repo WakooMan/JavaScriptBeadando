@@ -4,18 +4,24 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>QUANTIK</title>
 </head>
 <body>
     <div id="nyitolap">
       <p>QUANTIK</p>
-      <label for="player1">Player 1</label><br>
-      <input type="text" id="player1" name="player1_szovegmezo" value="1. Játékos"><br>
+      <label for="player1" class="center">Player 1</label><br>
+      <input type="text" id="player1" name="player1_szovegmezo" value="1. Játékos" class="center"><br>
       <label for="player2">Player 2</label><br>
-      <input type="text" id="player2" name="player2_szovegmezo" value="2. Játékos"><br>
-      <button id="StartButton">START</button>
+      <input type="text" id="player2" name="player2_szovegmezo" value="2. Játékos" class="center"><br>
+      <select id="savedgames">
+        <option value="None" selected="selected">None</option>
+      </select><br>
+      <button id="StartButton" class="center quantikbutton">START</button><br>
     </div>
     <div id="jatekoldal">
+        <button id="mentesgomb" class="quantikbutton">MENTÉS & KILÉPÉS</button>
+        <button id="kilepesgomb" class="quantikbutton">KILÉPÉS</button>
         <canvas></canvas>
     </div>
 <script src="Primitives.js"></script>

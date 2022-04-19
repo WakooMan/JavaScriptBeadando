@@ -237,6 +237,26 @@ class InformationView extends View
         this.Rectangle.Draw(Context,this.PlayerLogics.CPVPanelPoint(),0,this.PlayerLogics.CPVPanelBackColor().ToString(),this.PlayerLogics.CPVPanelWidth(),this.PlayerLogics.CPVPanelHeight());
     }
 }
+
+class PlayerWonView extends InformationView
+{
+    #Text;
+    #Picture;
+    constructor(playerlogics)
+    {
+        super(playerlogics);
+        this.#Text = new DText();
+        this.#Picture = new Picture();
+    }
+
+    OnRender(Context)
+    {
+        super.OnRender(Context);
+        this.#Picture.Draw(Context,this.PlayerLogics.CPVWinImagePoint(),0,this.PlayerLogics.GetCurrentPlayer().Image(),this.PlayerLogics.GetCurrentPlayer().CPVImageWidth(),this.PlayerLogics.GetCurrentPlayer().CPVImageHeight());
+        this.#Text.Draw(Context,this.PlayerLogics.CPVWinTextPoint(),0,this.PlayerLogics.CPVPlayerFontStyle(),this.PlayerLogics.CPVFontFillStyle(),(this.PlayerLogics.GetCurrentPlayer().ActiveColor() == Colors.P1ActiveColor())?'A piros játékos nyert!':'A zöld játékos nyert!');
+    }
+}
+
 class CurrentPlayerView extends InformationView
 {
     #Text;

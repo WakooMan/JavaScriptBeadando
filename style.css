@@ -1,0 +1,32 @@
+#nyitolap > p
+{
+    font-size: 5vw;
+}
+
+#nyitolap > *
+{
+    margin-bottom :2vw;
+    font-size: 2vw;
+}
+#nyitolap
+{
+    text-align: center;
+}
+body
+{
+    background-color:yellowgreen;
+}
+
+.quantikbutton
+{
+    background-color: rgb(231,231,103);
+    border-width: 1vw;
+    border-color: darkgreen;
+    border-style:solid;
+    border-radius: 10%;
+    padding: 1vw 4vw;
+    text-align: center;
+    color:darkgreen;
+    font-size: 2vw;
+}
+
